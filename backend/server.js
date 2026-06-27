@@ -89,7 +89,9 @@ async function sendEmailReliably(mailOptions) {
 
 
 const calendarIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/calendar.png" alt="Calendar" style="width: 24px; height: 24px; display: block; border: 0;" />`;
-const doctorIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/user.png" alt="Doctor" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const doctorIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/medical-doctor.png" alt="Doctor" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const clockIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/clock.png" alt="Clock" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const toothIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/tooth.png" alt="Tooth" style="width: 24px; height: 24px; display: block; border: 0;" />`;
 const infoIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/info.png" alt="Info" style="width: 24px; height: 24px; display: block; border: 0;" />`;
 
 const generateEmailHTML = (title, patientName, paragraphs, highlights, cta, iconSvg, postHighlightsParagraphs = []) => {
@@ -489,7 +491,7 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
           ...(updatedApt.doctor && updatedApt.doctor !== 'Unassigned' ? [{ label: 'Doctor', value: updatedApt.doctor }] : [])
         ],
         null,
-        `<img src="https://cdn.jsdelivr.net/gh/ROCKERM2010/Zenora-dental@main/assets/img/gen_icon-clock.png" alt="Clock" style="width: 24px; height: 24px; display: block; border: 0;" />`
+        clockIcon
       );
 
       if (status === 'Completed') {
@@ -504,7 +506,7 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
           ],
           null, // No highlights needed here
           { text: 'Review on Google', url: 'https://g.page/review/placeholder-link' },
-          `<img src="https://cdn.jsdelivr.net/gh/ROCKERM2010/Zenora-dental@main/assets/img/gen_icon-tooth.png" alt="Tooth" style="width: 24px; height: 24px; display: block; border: 0;" />`
+          toothIcon
         );
       }
 
