@@ -1,0 +1,14 @@
+[
+  {
+    "id": "ADM0001",
+    "email": "admin@zenoradental.com",
+    "password": "zenoradental2010",
+    "role": "Master Admin"
+  },
+  {
+    "id": "ADM1191",
+    "email": "admin1.0@hospital.com",
+    "password": "ADMIN123",
+    "role": "Administrator"
+  }
+]
