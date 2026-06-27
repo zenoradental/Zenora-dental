@@ -1,5 +1,5 @@
 # Auto Sync Script for GitHub Deployment (Polling Version)
-$FolderToWatch = "d:\WEBSITES\THE ZEHOSP\lumora-dental"
+$FolderToWatch = "d:\WEBSITES\THE ZEHOSP"
 
 # Ensure we start in the Git repository directory
 Set-Location $FolderToWatch

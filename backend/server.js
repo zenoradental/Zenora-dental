@@ -363,49 +363,47 @@ app.post('/api/appointments', async (req, res) => {
     
     await appointmentRecord.save();
     
-    // Send email notification
-    if (transporter && appointmentRecord.email) {
-      const fromAddress = process.env.SMTP_USER === 'resend' 
-        ? 'onboarding@resend.dev' 
-        : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
-        
-      const mailOptions = {
-        from: fromAddress,
-        to: appointmentRecord.email,
-        subject: `Appointment Confirmed - Tracking ID: ${appointmentRecord.appointmentId}`,
-        text: `Appointment Confirmed! Thank you, ${appointmentRecord.patientName}. Your Tracking ID is ${appointmentRecord.appointmentId}. Service: General Checkup. Date: ${appointmentRecord.appointmentDate}. Time: ${appointmentRecord.appointmentTime}. Please ensure you arrive 10 minutes prior to your scheduled time.`,
-        html: generateEmailHTML(
-          'Appointment Confirmed',
-          appointmentRecord.patientName,
-          [
-            'We are writing to confirm that your appointment request has been successfully received by our administration team. At <strong>Zenora Dental</strong>, your oral health and comfort are our top priorities, and we look forward to providing you with exceptional care.',
-            'Please ensure you arrive 10 minutes prior to your scheduled time. If you have any questions or need to reschedule, please contact our support team.'
-          ],
-          [
-            { label: 'Tracking ID', value: appointmentRecord.appointmentId },
-            { label: 'Date', value: appointmentRecord.appointmentDate },
-            { label: 'Time', value: appointmentRecord.appointmentTime },
-            { label: 'Service', value: 'General Checkup' }
-          ],
-          { text: 'Check Appointment Status', url: `${process.env.FRONTEND_URL || 'https://zenoradentalofficial.netlify.app'}/check-status.html` },
-          calendarIcon
-        )
-      };
+    // Send email notification non-fatally
+    try {
+      if (transporter && appointmentRecord.email) {
+        const fromAddress = process.env.SMTP_USER === 'resend' 
+          ? 'onboarding@resend.dev' 
+          : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+          
+        const mailOptions = {
+          from: fromAddress,
+          to: appointmentRecord.email,
+          subject: `Appointment Confirmed - Tracking ID: ${appointmentRecord.appointmentId}`,
+          text: `Appointment Confirmed! Thank you, ${appointmentRecord.patientName}. Your Tracking ID is ${appointmentRecord.appointmentId}. Service: General Checkup. Date: ${appointmentRecord.appointmentDate}. Time: ${appointmentRecord.appointmentTime}. Please ensure you arrive 10 minutes prior to your scheduled time.`,
+          html: generateEmailHTML(
+            'Appointment Confirmed',
+            appointmentRecord.patientName,
+            [
+              'We are writing to confirm that your appointment request has been successfully received by our administration team. At <strong>Zenora Dental</strong>, your oral health and comfort are our top priorities, and we look forward to providing you with exceptional care.',
+              'Please ensure you arrive 10 minutes prior to your scheduled time. If you have any questions or need to reschedule, please contact our support team.'
+            ],
+            [
+              { label: 'Tracking ID', value: appointmentRecord.appointmentId },
+              { label: 'Date', value: appointmentRecord.appointmentDate },
+              { label: 'Time', value: appointmentRecord.appointmentTime },
+              { label: 'Service', value: 'General Checkup' }
+            ],
+            { text: 'Check Appointment Status', url: `${process.env.FRONTEND_URL || 'https://zenoradentalofficial.netlify.app'}/check-status.html` },
+            calendarIcon
+          )
+        };
 
-      try {
         const info = await transporter.sendMail(mailOptions);
         console.log("Email sent: %s", info.messageId);
-      } catch (err) {
-        console.error("Error sending email: ", err);
       }
-
-      res.status(201).json({ success: true, appointment: appointmentRecord });
-    } else {
-      res.status(201).json({ success: true, appointment: appointmentRecord, emailError: 'Transporter or email missing' });
+    } catch (emailErr) {
+      console.error("Non-fatal error sending confirmation email:", emailErr.message || emailErr);
     }
+
+    res.status(201).json({ success: true, appointment: appointmentRecord });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to save appointment' });
+    console.error("Fatal error saving appointment:", err);
+    res.status(500).json({ error: 'Failed to save appointment', details: err.message });
   }
 });
 
