@@ -92,11 +92,17 @@
             
             if(!id) return;
 
-            fetch(`https://zenora-backend-api.vercel.app/api/appointments/${id}`)
-                .then(res => {
-                    if(!res.ok) throw new Error('Not found');
-                    return res.json();
-                })
+            async function fetchWithFallback(urlPath) {
+                try {
+                    const res = await fetch(`https://zenora-backend-api.vercel.app${urlPath}`);
+                    if (res.ok) return await res.json();
+                } catch (e) { console.warn('Vercel fetch failed, trying Render...', e); }
+                const res2 = await fetch(`https://zenora-backend-6ghi.onrender.com${urlPath}`);
+                if (!res2.ok) throw new Error('Not found');
+                return await res2.json();
+            }
+
+            fetchWithFallback(`/api/appointments/${id}`)
                 .then(data => {
                     errorMsg.classList.remove('active');
                     document.getElementById('res-name').textContent = data.patientName;

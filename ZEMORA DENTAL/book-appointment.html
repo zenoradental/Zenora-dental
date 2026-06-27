@@ -969,7 +969,13 @@
                             btnNext.style.opacity = '0.7';
                             btnNext.style.pointerEvents = 'none';
 
-                            const response = await fetch('https://zenora-backend-api.vercel.app/api/appointments');
+                            let response;
+                            try {
+                                response = await fetch('https://zenora-backend-api.vercel.app/api/appointments');
+                                if (!response.ok) throw new Error('Vercel failed');
+                            } catch (e) {
+                                response = await fetch('https://zenora-backend-6ghi.onrender.com/api/appointments');
+                            }
                             const appointments = await response.json();
                             const isBooked = appointments.some(apt => 
                                 apt.appointmentDate === date && 
@@ -1022,22 +1028,62 @@
                         medicalHistory: document.getElementById('field-medical-history').value
                     };
 
+                    async function postAppointmentWithFallback(payloadData) {
+                        try {
+                            const res = await fetch(`https://zenora-backend-api.vercel.app/api/appointments`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payloadData)
+                            });
+                            const data = await res.json();
+                            if (res.ok) return { success: true, data };
+                            if (res.status === 500 || data.error === 'Failed to save appointment') {
+                                try {
+                                    const checkRes = await fetch('https://zenora-backend-api.vercel.app/api/appointments');
+                                    if (checkRes.ok) {
+                                        const apts = await checkRes.json();
+                                        const saved = apts.find(a => a.patientName === payloadData.name && a.appointmentDate === payloadData.date && a.appointmentTime === payloadData.time);
+                                        if (saved) return { success: true, data: { success: true, appointment: saved } };
+                                    }
+                                } catch (e) {}
+                            }
+                            return { success: false, error: data.error };
+                        } catch (err) {
+                            console.warn('Vercel POST failed, falling back to Render...', err);
+                        }
+                        try {
+                            const res2 = await fetch(`https://zenora-backend-6ghi.onrender.com/api/appointments`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payloadData)
+                            });
+                            const data2 = await res2.json();
+                            if (res2.ok) return { success: true, data: data2 };
+                            if (res2.status === 500 || data2.error === 'Failed to save appointment') {
+                                try {
+                                    const checkRes2 = await fetch('https://zenora-backend-6ghi.onrender.com/api/appointments');
+                                    if (checkRes2.ok) {
+                                        const apts2 = await checkRes2.json();
+                                        const saved2 = apts2.find(a => a.patientName === payloadData.name && a.appointmentDate === payloadData.date && a.appointmentTime === payloadData.time);
+                                        if (saved2) return { success: true, data: { success: true, appointment: saved2 } };
+                                    }
+                                } catch (e) {}
+                            }
+                            return { success: false, error: data2.error };
+                        } catch (err2) {
+                            return { success: false, error: 'Network Error: Could not connect to the booking server.' };
+                        }
+                    }
+
                     try {
-                        const response = await fetch(`https://zenora-backend-api.vercel.app/api/appointments`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-
-                        const data = await response.json();
-
-                        if (!response.ok) {
-                            showErrorPopup([data.error || 'Failed to book appointment. Please try again.']);
+                        const result = await postAppointmentWithFallback(payload);
+                        if (!result.success) {
+                            showErrorPopup([result.error || 'Failed to book appointment. Please try again.']);
                             btnNext.textContent = originalText;
                             btnNext.style.opacity = '1';
                             btnNext.style.pointerEvents = 'auto';
                         } else {
-                            showSuccess(data);
+                            showSuccess(result.data);
                         }
                     } catch (error) {
                         showErrorPopup(['Network Error: Could not connect to the booking server. Please ensure the backend is running.']);
