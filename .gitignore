@@ -1,0 +1,7 @@
+node_modules/
+.env
+.DS_Store
+preview-all.html
+*_BACKUP/
+*.zip
+dist/

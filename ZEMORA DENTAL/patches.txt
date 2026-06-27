@@ -1,0 +1,45 @@
+=== "Update the email input to only accept @gmail.com addresses as requested. Updated the placeholder and added validation logic to the Next button." ===
+CHUNK 1
+--- TARGET ---
+=== "Replace select dropdown with an inline grid of clickable service cards for a more premium feel" ===
+CHUNK 1
+--- TARGET ---
+=== "Replace date and time native inputs with custom radio card grids. Generate dates dynamically using Javascript." ===
+CHUNK 1
+--- TARGET ---
+=== "Implement Flatpickr inline calendar for the Date field so users can pick any date while maintaining the premium look" ===
+CHUNK 1
+--- TARGET ---
+=== "Revert to Date Cards but present them as a grid with a Custom Date picker option to solve the infinite dates problem" ===
+CHUNK 1
+--- TARGET ---
+=== "Fixed custom date picker not opening on subsequent clicks." ===
+CHUNK 1
+--- TARGET ---
+=== "Fixed syntax error introduced in the date picker logic and added click event listener for the custom date picker." ===
+--- TARGET ---
+"                document.addEventListener('change', (e) => {\n                    if (e.target.classList.contains('date-radio')) {\n                        if (e.target.value !== 'custom') {\n                            document.getElementById('field-date').value = e.target.value;\n                            validateStep();\n                        }\n                            document.getElementById('field-date').value = e.target.value;\n                            validateStep();\n                        }\n                    }\n                });"
+--- REPLACEMENT ---
+"                document.getElementById('custom-date-radio').addEventListener('click', (e) => {\n                    if (typeof hiddenPicker.showPicker === 'function') {\n                        try { hiddenPicker.showPicker(); } catch(err) { hiddenPicker.click(); }\n                    } else {\n                        hiddenPicker.click();\n                    }\n                });\n\n                document.addEventListener('change', (e) => {\n                    if (e.target.classList.contains('date-radio')) {\n                        if (e.target.value !== 'custom') {\n                            document.getElementById('field-date').value = e.target.value;\n                            validateStep();\n                        }\n                    }\n                });"
+=== "Removed extra validateStep() call." ===
+--- TARGET ---
+"                        document.getElementById('field-date').value = e.target.value;\n                        // document.getElementById('custom-date-radio').value = e.target.value; // Keep it as 'custom'\n                        validateStep();\n                        validateStep();"
+--- REPLACEMENT ---
+"                        document.getElementById('field-date').value = e.target.value;\n                        // document.getElementById('custom-date-radio').value = e.target.value; // Keep it as 'custom'\n                        validateStep();"
+=== "Update the booking form to submit data to the local backend as well as Formspree." ===
+--- TARGET ---
+"                fetch(\"https://formspree.io/f/meewbznp\", {\n                    method: \"POST\",\n                    headers: {\n                        \"Accept\": \"application/json\",\n                        \"Content-Type\": \"application/json\"\n                    },\n                    body: JSON.stringify({\n                        name: name,\n                        email: email,\n                        phone: phone,\n                        service: service,\n                        date: date,\n                        time: time,\n                        notes: notes,\n                        _subject: \"New Appointment Request: \" + name\n                    })\n                }).then(response => {"
+--- REPLACEMENT ---
+"                // Submit to local backend for Admin Portal\n                fetch(\"http://localhost:3001/api/appointments\", {\n                    method: \"POST\",\n                    headers: {\n                        \"Accept\": \"application/json\",\n                        \"Content-Type\": \"application/json\"\n                    },\n                    body: JSON.stringify({\n                        name: name,\n                        email: email,\n                        phone: phone,\n                        service: service,\n                        date: date,\n                        time: time,\n                        notes: notes\n                    })\n                }).catch(err => console.error(\"Failed to save to local backend:\", err));\n\n                // Submit to Formspree for email notification\n                fetch(\"https://formspree.io/f/meewbznp\", {\n                    method: \"POST\",\n                    headers: {\n                        \"Accept\": \"application/json\",\n                        \"Content-Type\": \"application/json\"\n                    },\n                    body: JSON.stringify({\n                        name: name,\n                        email: email,\n                        phone: phone,\n                        service: service,\n                        date: date,\n                        time: time,\n                        notes: notes,\n                        _subject: \"New Appointment Request: \" + name\n                    })\n                }).then(response => {"
+=== "Update booking form to display Tracking ID" ===
+CHUNK 1
+--- TARGET ---
+=== "Update submitForm to send age, gender, medical history" ===
+CHUNK 1
+--- TARGET ---
+=== "Update validation logic for email and phone" ===
+CHUNK 1
+--- TARGET ---
+=== "Update age minimum to 1" ===
+CHUNK 1
+--- TARGET ---

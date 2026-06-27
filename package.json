@@ -1,0 +1,17 @@
+{
+  "name": "the-zehosp",
+  "version": "1.0.0",
+  "description": "Local development server setup",
+  "scripts": {
+    "build:admin": "cd \"ZENORA ADMIN\" && npm run build",
+    "start": "node backend/server.js",
+    "dev": "npm run start",
+    "backend": "node backend/server.js",
+    "sync": "powershell -ExecutionPolicy Bypass -File auto_sync.ps1",
+    "start:all": "npm run build:admin && npm run start"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

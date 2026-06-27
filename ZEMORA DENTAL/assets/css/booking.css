@@ -1,0 +1,1029 @@
+/* ===================================================
+   BOOKING PAGE — Premium Multi-Step Appointment Form
+   =================================================== */
+
+/* ---------- Page Background ---------- */
+.booking-page-main {
+    min-height: 100vh;
+    padding: 120px 20px 80px;
+    font-family: 'Sora', sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f9fa 50%, rgba(36,163,177,0.06) 100%);
+}
+
+/* ---------- Wrapper ---------- */
+.booking-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* ---------- Header ---------- */
+.booking-hero {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.booking-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border-radius: 9999px;
+    background: rgba(36,163,177,0.1);
+    border: 1px solid rgba(36,163,177,0.2);
+    color: #24a3b1;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.booking-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.booking-hero h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+    background: linear-gradient(90deg, #011f23, rgba(1,31,35,0.65));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.booking-hero p {
+    color: #64748b;
+    font-size: 18px;
+    max-width: 520px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* ---------- Progress Steps ---------- */
+.progress-section {
+    margin-bottom: 48px;
+}
+
+.progress-steps {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 16px;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.step-btn {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid #e2e8f0;
+    background: rgba(241,245,249,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    transition: all 0.5s cubic-bezier(.4,0,.2,1);
+    color: #94a3b8;
+}
+
+.step-btn svg {
+    width: 24px;
+    height: 24px;
+    position: relative;
+    z-index: 2;
+}
+
+.step-btn.active {
+    background: #24a3b1;
+    border-color: #24a3b1;
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 8px 24px rgba(36,163,177,0.35);
+    cursor: default;
+}
+
+.step-btn.active::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    background: rgba(36,163,177,0.15);
+    animation: stepPulse 2s ease-in-out infinite;
+    z-index: 0;
+}
+
+@keyframes stepPulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.15); opacity: 0; }
+}
+
+.step-btn.completed {
+    background: rgba(36,163,177,0.1);
+    border-color: rgba(36,163,177,0.3);
+    color: #24a3b1;
+    cursor: pointer;
+}
+
+.step-btn.completed:hover {
+    transform: scale(1.05);
+}
+
+.step-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #94a3b8;
+    transition: color 0.3s;
+}
+
+.step-item.is-active .step-label,
+.step-item.is-completed .step-label {
+    color: #011f23;
+}
+
+/* Connector line */
+.step-connector {
+    position: relative;
+    width: 64px;
+    height: 2px;
+    background: #e2e8f0;
+    margin-top: 28px;
+    overflow: hidden;
+    border-radius: 2px;
+}
+
+.step-connector-fill {
+    position: absolute;
+    inset: 0;
+    background: #24a3b1;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s cubic-bezier(.4,0,.2,1);
+    border-radius: 2px;
+}
+
+.step-connector.filled .step-connector-fill {
+    transform: scaleX(1);
+}
+
+/* Progress bar */
+.progress-bar-track {
+    height: 8px;
+    background: rgba(226,232,240,0.4);
+    border-radius: 9999px;
+    max-width: 400px;
+    margin: 24px auto 0;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(36,163,177,0.5), #24a3b1);
+    border-radius: 9999px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+
+/* ---------- Form Card ---------- */
+.booking-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid rgba(226,232,240,0.5);
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(1,31,35,0.06), 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.booking-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(36,163,177,0.04), transparent, transparent);
+    pointer-events: none;
+}
+
+.booking-card::after {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 380px;
+    height: 380px;
+    background: rgba(36,163,177,0.04);
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+}
+
+.booking-card-inner {
+    position: relative;
+    padding: 48px;
+    z-index: 1;
+}
+
+/* ---------- Step Content ---------- */
+.step-panel {
+    display: none;
+}
+
+.step-panel.active {
+    display: block;
+    animation: slideIn 0.35s ease-out forwards;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(24px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.step-heading {
+    font-size: 24px;
+    font-weight: 600;
+    color: #011f23;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+    word-spacing: 0.1em;
+}
+
+.step-subheading {
+    color: #64748b;
+    font-size: 15px;
+    margin: 0 0 28px;
+}
+
+/* ---------- Form Fields ---------- */
+.field-group {
+    margin-bottom: 20px;
+}
+
+.field-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(1,31,35,0.85);
+    margin-bottom: 8px;
+}
+
+.field-input-wrap {
+    position: relative;
+}
+
+.field-input-wrap .field-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+.field-input,
+.field-select {
+    width: 100%;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(4px);
+    padding: 0 16px;
+    font-size: 15px;
+    font-family: 'Sora', sans-serif;
+    color: #011f23;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.field-input.has-icon,
+.field-select.has-icon {
+    padding-left: 42px;
+}
+
+.field-input::placeholder {
+    color: rgba(100,116,139,0.55);
+}
+
+.field-input:focus,
+.field-select:focus {
+    outline: none;
+    border-color: #24a3b1;
+    box-shadow: 0 0 0 4px rgba(36,163,177,0.1);
+}
+
+.field-textarea {
+    width: 100%;
+    min-height: 120px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(4px);
+    padding: 12px 16px;
+    font-size: 15px;
+    font-family: 'Sora', sans-serif;
+    color: #011f23;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: all 0.3s ease;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.field-textarea::placeholder {
+    color: rgba(100,116,139,0.55);
+}
+
+.field-textarea:focus {
+    outline: none;
+    border-color: #24a3b1;
+    box-shadow: 0 0 0 4px rgba(36,163,177,0.1);
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* ---------- Services Grid (Radio Cards) ---------- */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.service-radio,
+.time-radio,
+.date-radio {
+    display: none;
+}
+
+.service-card {
+    cursor: pointer;
+    display: block;
+    margin: 0;
+}
+
+.service-card-inner {
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: rgba(255,255,255,0.5);
+    backdrop-filter: blur(4px);
+    text-align: center;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #64748b;
+    font-size: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.service-card:hover .service-card-inner {
+    border-color: #cbd5e1;
+    background: rgba(255,255,255,0.9);
+}
+
+.service-radio:checked + .service-card-inner,
+.time-radio:checked + .service-card-inner,
+.date-radio:checked + .service-card-inner {
+    border-color: #24a3b1;
+    background: rgba(36,163,177,0.08);
+    color: #011f23;
+    font-weight: 600;
+    box-shadow: 0 0 0 1px #24a3b1, 0 4px 12px rgba(36,163,177,0.15);
+}
+
+/* ---------- Time Grid ---------- */
+.time-grid {
+    grid-template-columns: repeat(4, 1fr);
+}
+.time-card-inner {
+    padding: 12px 8px;
+    font-size: 13px;
+}
+
+/* ---------- Date Grid ---------- */
+.date-grid {
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 8px;
+}
+.date-card-inner {
+    padding: 16px 8px;
+}
+.date-day {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+.date-radio:checked + .date-card-inner .date-day {
+    color: #24a3b1;
+}
+.date-num {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* ---------- Summary Box ---------- */
+.summary-box {
+    margin-top: 24px;
+    padding: 24px;
+    border-radius: 16px;
+    background: rgba(36,163,177,0.04);
+    border: 1px solid rgba(36,163,177,0.1);
+}
+
+.summary-box h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #011f23;
+    margin: 0 0 16px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.summary-row:last-child {
+    margin-bottom: 0;
+}
+
+.summary-row .s-label {
+    color: #64748b;
+}
+
+.summary-row .s-value {
+    font-weight: 500;
+    color: #011f23;
+}
+
+/* ---------- Navigation Buttons ---------- */
+.booking-nav {
+    display: flex;
+    gap: 16px;
+    margin-top: 36px;
+}
+
+.btn-book {
+    flex: 1;
+    height: 48px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    border: none;
+}
+
+.btn-book--primary {
+    background: #24a3b1;
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(36,163,177,0.25);
+}
+
+.btn-book--primary:hover:not(:disabled) {
+    background: #1c8591;
+    box-shadow: 0 8px 24px rgba(36,163,177,0.35);
+    transform: translateY(-1px);
+}
+
+.btn-book--primary:disabled {
+    background: #cbd5e1;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.btn-book--outline {
+    background: #fff;
+    color: #011f23;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-book--outline:hover {
+    background: #f1f5f9;
+}
+
+/* ---------- Success Screen ---------- */
+.success-screen {
+    display: none;
+    min-height: 100vh;
+    width: 100%;
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f9fa 50%, rgba(36,163,177,0.06) 100%);
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.success-screen.active {
+    display: flex;
+}
+
+.success-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 24px;
+    border: 1px solid rgba(226,232,240,0.5);
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(1,31,35,0.06);
+    padding: 64px 48px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    animation: scaleIn 0.5s ease-out forwards;
+}
+
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.success-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(36,163,177,0.08), transparent, transparent);
+    pointer-events: none;
+}
+
+.success-card::after {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 260px;
+    height: 260px;
+    background: rgba(36,163,177,0.04);
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+}
+
+.success-icon-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(36,163,177,0.1);
+    border: 2px solid rgba(36,163,177,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    position: relative;
+    z-index: 1;
+    animation: popIn 0.4s 0.2s ease-out both;
+}
+
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+.success-icon-ring svg {
+    width: 40px;
+    height: 40px;
+    color: #24a3b1;
+    stroke-width: 2.5;
+}
+
+.success-card h2 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+    background: linear-gradient(90deg, #011f23, rgba(1,31,35,0.65));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    z-index: 1;
+}
+
+.success-card .success-thanks {
+    font-size: 18px;
+    color: #64748b;
+    margin: 0 0 8px;
+    position: relative;
+    z-index: 1;
+}
+
+.success-card .success-email-note {
+    font-size: 14px;
+    color: rgba(100,116,139,0.75);
+    margin: 0 0 28px;
+    position: relative;
+    z-index: 1;
+}
+
+.success-card .success-email-note strong {
+    color: #011f23;
+    font-weight: 500;
+}
+
+.success-summary {
+    width: 100%;
+    padding: 24px;
+    border-radius: 16px;
+    background: rgba(36,163,177,0.04);
+    border: 1px solid rgba(36,163,177,0.1);
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.success-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.success-summary .summary-row:last-child {
+    margin-bottom: 0;
+}
+
+.success-summary .s-label {
+    color: #64748b;
+}
+
+.success-summary .s-value {
+    font-weight: 500;
+    color: #011f23;
+}
+
+.success-card .btn-book {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+    .booking-page-main {
+        padding: 100px 16px 60px;
+    }
+
+    .booking-card-inner {
+        padding: 28px 20px;
+    }
+
+    .field-row {
+        grid-template-columns: 1fr;
+    }
+
+    .step-label {
+        display: none;
+    }
+
+    .step-connector {
+        width: 40px;
+    }
+
+    .step-btn {
+        width: 48px;
+        height: 48px;
+    }
+
+    .step-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .booking-hero h1 {
+        font-size: 28px;
+    }
+
+    .booking-hero p {
+        font-size: 15px;
+    }
+
+    .success-card {
+        padding: 40px 24px;
+    }
+
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+    .time-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .progress-steps {
+        gap: 8px;
+    }
+    .step-connector {
+        width: 24px;
+    }
+    .step-label {
+        display: none;
+    }
+    .step-panel {
+        padding: 0 12px;
+    }
+    .btn-book {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+    .time-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* Restored Premium Booking UI Styles */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+.service-card {
+    cursor: pointer;
+    position: relative;
+    display: block;
+}
+.service-radio, .date-radio, .time-radio {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.service-card-inner {
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    font-weight: 500;
+    color: #475569;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+.service-radio:checked + .service-card-inner,
+.date-radio:checked + .service-card-inner,
+.time-radio:checked + .service-card-inner {
+    border-color: #14b8a6;
+    background: rgba(20, 184, 166, 0.05);
+    color: #14b8a6;
+    box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.1);
+}
+.service-card:hover .service-card-inner {
+    border-color: #cbd5e1;
+}
+
+.dates-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+}
+.dates-scroll::-webkit-scrollbar {
+    display: none;
+}
+.date-card-inner {
+    padding: 12px 20px;
+    min-width: max-content;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    font-weight: 500;
+    color: #475569;
+    text-align: center;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.4;
+}
+.date-card-inner span.month {
+    font-size: 12px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.date-card-inner span.day {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.time-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+.time-card-inner {
+    padding: 12px;
+    font-size: 14px;
+}
+
+/* Premium Flatpickr Theme Customization */
+.flatpickr-calendar {
+    font-family: 'Sora', sans-serif !important;
+    box-shadow: 0 4px 15px -3px rgba(0,0,0,0.05), 0 0 0 1px #e2e8f0 !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 10px !important;
+    width: 100% !important;
+    max-width: 320px !important;
+    margin: 0 !important;
+}
+.flatpickr-months .flatpickr-month {
+    height: 48px !important;
+}
+.flatpickr-current-month {
+    font-size: 110% !important;
+    font-weight: 600 !important;
+}
+.flatpickr-day.selected, 
+.flatpickr-day.startRange, 
+.flatpickr-day.endRange, 
+.flatpickr-day.selected.inRange, 
+.flatpickr-day.startRange.inRange, 
+.flatpickr-day.endRange.inRange, 
+.flatpickr-day.selected:focus, 
+.flatpickr-day.startRange:focus, 
+.flatpickr-day.endRange:focus, 
+.flatpickr-day.selected:hover, 
+.flatpickr-day.startRange:hover, 
+.flatpickr-day.endRange:hover, 
+.flatpickr-day.selected.prevMonthDay, 
+.flatpickr-day.startRange.prevMonthDay, 
+.flatpickr-day.endRange.prevMonthDay, 
+.flatpickr-day.selected.nextMonthDay, 
+.flatpickr-day.startRange.nextMonthDay, 
+.flatpickr-day.endRange.nextMonthDay {
+    background: #14b8a6 !important;
+    border-color: #14b8a6 !important;
+    font-weight: 600 !important;
+}
+.flatpickr-day:hover {
+    background: #f1f5f9 !important;
+    border-color: #f1f5f9 !important;
+}
+.flatpickr-weekday {
+    color: #94a3b8 !important;
+    font-weight: 600 !important;
+}
+.date-picker-wrapper {
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Premium Date Pills Styling */
+.date-pill {
+    cursor: pointer;
+    position: relative;
+    display: block;
+    flex-shrink: 0;
+}
+.date-pill-inner {
+    padding: 16px 12px;
+    width: 64px;
+    height: 84px;
+    border-radius: 100px; /* Fully rounded pill shape */
+    background: #f8fafc; /* Soft modern grey */
+    border: 2px solid transparent;
+    color: #64748b;
+    text-align: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.date-pill-inner .weekday {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+.date-pill-inner .day {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+.date-pill-inner .month {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.date-pill:hover .date-pill-inner {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+}
+.date-radio:checked + .date-pill-inner {
+    background: #14b8a6;
+    color: #ffffff;
+    box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.3);
+    transform: translateY(-4px);
+}
+.date-radio:checked + .date-pill-inner .day {
+    color: #ffffff;
+}
+.custom-pill {
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+}
+.date-pill:hover .custom-pill {
+    border-color: #94a3b8;
+    background: #ffffff;
+}
+.date-radio:checked + .custom-pill {
+    border: 2px solid #14b8a6;
+}
+
+/* Responsive Grid for 3-Column Rows (Phone/Age/Gender) */
+.field-row.responsive-3-col {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+}
+.field-row.responsive-3-col > .field-group {
+    width: 100% !important;
+}
+
+/* Ensure Responsive Fixes Apply After All Customizations */
+@media (max-width: 768px) {
+    .field-row.responsive-3-col {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    /* Prevent sticky navbar overlapping progress steps when scrolling/jumping */
+    .progress-section, .booking-card, .step-panel, input, select {
+        scroll-margin-top: 100px !important;
+    }
+    .booking-page-main {
+        padding: 110px 12px 40px !important;
+    }
+    .progress-section {
+        padding-top: 15px !important;
+    }
+    .services-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .time-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    .booking-nav {
+        flex-direction: column !important;
+        gap: 12px !important;
+    }
+    .btn-book {
+        width: 100% !important;
+    }
+    .booking-card-inner {
+        padding: 24px 16px !important;
+    }
+    .step-heading {
+        font-size: 20px !important;
+    }
+    .booking-hero h1 {
+        font-size: 26px !important;
+    }
+    .btn-premium-status {
+        padding: 12px 20px !important;
+        font-size: 13px !important;
+        text-align: center !important;
+        display: flex !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .time-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .date-pill-inner {
+        width: 56px !important;
+        height: 76px !important;
+        padding: 10px 8px !important;
+    }
+    .date-pill-inner .day {
+        font-size: 16px !important;
+    }
+}
