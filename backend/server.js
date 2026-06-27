@@ -221,7 +221,7 @@ app.get('/api/test-email-diagnostic', async (req, res) => {
     
     res.json({ 
       status: 'success', 
-      message: 'Email successfully sent!',
+      message: 'Diagnostic test email sent successfully (v2.0)!',
       info: info.messageId
     });
   } catch (error) {
