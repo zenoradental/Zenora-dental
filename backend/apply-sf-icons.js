@@ -1,8 +1,8 @@
 const fs = require('fs');
 
-const calendarIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/calendar.png" alt="Calendar" style="width: 24px; height: 24px; display: block; border: 0;" />`;
-const doctorIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/user.png" alt="Doctor" style="width: 24px; height: 24px; display: block; border: 0;" />`;
-const infoIcon = `<img src="https://img.icons8.com/sf-regular/96/475569/info.png" alt="Info" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const calendarIcon = `<img src="https://cdn.jsdelivr.net/gh/ROCKERM2010/Zenora-dental@main/assets/img/gen_icon-calendar.png" alt="Calendar" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const doctorIcon = `<img src="https://cdn.jsdelivr.net/gh/ROCKERM2010/Zenora-dental@main/assets/img/gen_icon-user.png" alt="Doctor" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const infoIcon = `<img src="https://cdn.jsdelivr.net/gh/ROCKERM2010/Zenora-dental@main/assets/img/gen_icon-info.png" alt="Info" style="width: 24px; height: 24px; display: block; border: 0;" />`;
 
 const updateFile = (filename) => {
   if (!fs.existsSync(filename)) return;
