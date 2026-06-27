@@ -1,14 +1,26 @@
 {
   "name": "the-zehosp",
   "version": "1.0.0",
-  "description": "Local development server setup",
+  "description": "Zenora Dental Enterprise Suite - Root Package",
+  "main": "backend/server.js",
   "scripts": {
+    "postinstall": "cd backend && npm install --no-audit --no-fund",
     "build:admin": "cd \"ZENORA ADMIN\" && npm run build",
     "start": "node backend/server.js",
-    "dev": "npm run start",
+    "dev": "node backend/server.js",
     "backend": "node backend/server.js",
     "sync": "powershell -ExecutionPolicy Bypass -File auto_sync.ps1",
     "start:all": "npm run build:admin && npm run start"
+  },
+  "dependencies": {
+    "@vercel/functions": "^3.7.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.7.2",
+    "nodemailer": "^9.0.1",
+    "sharp": "^0.35.2",
+    "twilio": "^6.0.2"
   },
   "license": "ISC",
   "devDependencies": {
