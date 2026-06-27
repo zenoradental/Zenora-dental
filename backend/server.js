@@ -12,34 +12,79 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Nodemailer Transporter Setup
+// Nodemailer Dual-Port Failover Transporter Setup
 let transporter = null;
+let fallbackTransporter = null;
+
 const setupTransporter = async () => {
   if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    const isResend = process.env.SMTP_USER === 'resend';
+    const host = isResend ? 'smtp.resend.com' : (process.env.SMTP_HOST || 'smtp.gmail.com');
+    
+    // Primary: Port 465 (SSL/TLS direct) - bypasses cloud datacenter STARTTLS throttling
     transporter = nodemailer.createTransport({
-      host: process.env.SMTP_USER === 'resend' ? 'smtp.resend.com' : (process.env.SMTP_HOST || 'smtp.gmail.com'),
-      port: process.env.SMTP_USER === 'resend' ? 465 : (process.env.SMTP_PORT || 587),
-      secure: process.env.SMTP_USER === 'resend' ? true : (process.env.SMTP_PORT == 465),
+      host: host,
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
-      connectionTimeout: 5000, // 5 seconds
-      greetingTimeout: 5000,
-      socketTimeout: 5000,
-      tls: process.env.SMTP_USER === 'resend' ? {} : {
-        servername: 'smtp.gmail.com',
-        rejectUnauthorized: false
-      }
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 8000,
+      tls: isResend ? {} : { servername: host, rejectUnauthorized: false }
     });
-    console.log('Using configured SMTP credentials for Nodemailer.');
+
+    // Fallback: Port 587 (STARTTLS)
+    fallbackTransporter = nodemailer.createTransport({
+      host: host,
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 8000,
+      tls: isResend ? {} : { servername: host, rejectUnauthorized: false }
+    });
+
+    console.log('Using configured SMTP credentials with dual 465/587 failover.');
   } else {
     console.warn('No SMTP credentials found in environment. Email sending will be disabled.');
-    // Do not generate Ethereal account in production, it causes hangs and the user won't get the emails anyway.
     transporter = null;
+    fallbackTransporter = null;
   }
 };
 setupTransporter();
+
+async function sendEmailReliably(mailOptions) {
+  if (!transporter && !fallbackTransporter) {
+    console.warn('Email sending skipped: No SMTP credentials configured.');
+    return null;
+  }
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent successfully via primary port 465: %s', info.messageId);
+    return info;
+  } catch (err1) {
+    console.warn('Primary email dispatch (port 465) failed, retrying via fallback port 587...', err1.message || err1);
+    if (fallbackTransporter) {
+      try {
+        const info2 = await fallbackTransporter.sendMail(mailOptions);
+        console.log('Email sent successfully via fallback port 587: %s', info2.messageId);
+        return info2;
+      } catch (err2) {
+        console.error('Both primary (465) and fallback (587) email dispatch failed:', err2.message || err2);
+        throw err2;
+      }
+    } else {
+      throw err1;
+    }
+  }
+}
 
 
 
@@ -156,18 +201,18 @@ const generateEmailHTML = (title, patientName, paragraphs, highlights, cta, icon
   `;
 };
 app.get('/api/test-email-diagnostic', async (req, res) => {
-  if (!transporter) {
-    return res.status(500).json({ status: 'error', message: 'Transporter is null' });
+  if (!transporter && !fallbackTransporter) {
+    return res.status(500).json({ status: 'error', message: 'Transporters are null' });
   }
   try {
-    await transporter.verify();
+    if (transporter) await transporter.verify();
     
     // Attempt to send a test email
     const fromAddress = process.env.SMTP_USER === 'resend' 
         ? 'onboarding@resend.dev' 
         : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
         
-      const info = await transporter.sendMail({
+      const info = await sendEmailReliably({
         from: fromAddress,
         to: process.env.SMTP_USER === 'resend' ? process.env.SMTP_FROM_EMAIL : process.env.SMTP_USER, // Send to itself to test
         subject: 'Diagnostic Test Email',
@@ -366,7 +411,7 @@ app.post('/api/appointments', async (req, res) => {
     
     // Send email notification non-fatally
     try {
-      if (transporter && appointmentRecord.email) {
+      if ((transporter || fallbackTransporter) && appointmentRecord.email) {
         const fromAddress = process.env.SMTP_USER === 'resend' 
           ? 'onboarding@resend.dev' 
           : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
@@ -394,8 +439,8 @@ app.post('/api/appointments', async (req, res) => {
           )
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Email sent: %s", info.messageId);
+        const info = await sendEmailReliably(mailOptions);
+        if (info) console.log("Email sent: %s", info.messageId);
       }
     } catch (emailErr) {
       console.error("Non-fatal error sending confirmation email:", emailErr.message || emailErr);
@@ -426,7 +471,7 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
     res.json({ success: true, status });
 
     // Send email notification for status change
-    if (transporter && updatedApt.email) {
+    if ((transporter || fallbackTransporter) && updatedApt.email) {
       const fromAddress = process.env.SMTP_USER === 'resend' 
         ? 'onboarding@resend.dev' 
         : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
@@ -472,8 +517,8 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
         html: htmlBody
       };
       try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Status email sent:", info.messageId);
+        const info = await sendEmailReliably(mailOptions);
+        if (info) console.log("Status email sent:", info.messageId);
       } catch (err) {
         console.error("Error sending status email:", err);
       }
@@ -502,7 +547,7 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
     res.json({ success: true, doctor });
 
     // Send email notification for doctor assignment
-    if (transporter && updatedApt.email && doctor !== 'Unassigned') {
+    if ((transporter || fallbackTransporter) && updatedApt.email && doctor !== 'Unassigned') {
       const fromAddress = process.env.SMTP_USER === 'resend' 
         ? 'onboarding@resend.dev' 
         : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
@@ -528,8 +573,8 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
         )
       };
       try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log("Doctor email sent:", info.messageId);
+        const info = await sendEmailReliably(mailOptions);
+        if (info) console.log("Doctor email sent:", info.messageId);
       } catch (err) {
         console.error("Error sending doctor email:", err);
       }
@@ -663,13 +708,14 @@ app.patch('/api/admins/:id/password', async (req, res) => {
     if (!password) {
       return res.status(400).json({ error: 'Password is required' });
     }
-    if (req.params.id === 'ADM0001') {
-      return res.status(403).json({ error: 'Cannot reset password for the primary Master Admin from standard controls' });
-    }
     
     const admin = await Admin.findOne({ id: req.params.id });
     if (!admin) {
       return res.status(404).json({ error: 'Admin not found' });
+    }
+    
+    if (admin.role === 'Master Admin' || req.params.id === 'ADM0001') {
+      return res.status(403).json({ error: 'Standard users cannot change the password for Master Admin accounts.' });
     }
     
     admin.password = password;

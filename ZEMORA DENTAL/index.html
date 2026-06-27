@@ -1790,8 +1790,6 @@
                 var name=(f.querySelector('input[name="name"]').value||'').trim();
                 var phone=(f.querySelector('input[name="phone"]').value||'').trim();
                 if(!name||!phone){return false;}
-                var msg=encodeURIComponent("Hi Zenora Dental, I'm "+name+". Please call me back at "+phone+" for a dental appointment.");
-                try{ window.open("https://wa.me/917975693436?text="+msg,"_blank"); }catch(_){}
                 var card=f.closest('.lead-form_card');
                 if(card){
                     f.style.display='none';
