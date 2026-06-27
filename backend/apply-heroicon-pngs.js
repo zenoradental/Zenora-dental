@@ -7,11 +7,15 @@ const fixIconsAndLayout = (filename) => {
   // Replace SVGs with the exact Heroicon PNGs hosted on their Netlify
   const calendarIcon = `<img src="https://zenoradentalofficial.netlify.app/assets/img/gen_icon-calendar.png" alt="Calendar" style="width: 24px; height: 24px; display: block; border: 0;" />`;
   const doctorIcon = `<img src="https://zenoradentalofficial.netlify.app/assets/img/gen_icon-user.png" alt="Doctor" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+  const clockIcon = `<img src="https://zenoradentalofficial.netlify.app/assets/img/gen_icon-clock.png" alt="Clock" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+  const toothIcon = `<img src="https://zenoradentalofficial.netlify.app/assets/img/gen_icon-tooth.png" alt="Tooth" style="width: 24px; height: 24px; display: block; border: 0;" />`;
   const infoIcon = `<img src="https://zenoradentalofficial.netlify.app/assets/img/gen_icon-info.png" alt="Info" style="width: 24px; height: 24px; display: block; border: 0;" />`;
 
-  code = code.replace(/const calendarIcon = `<svg[\s\S]*?<\/svg>`;/g, 'const calendarIcon = `' + calendarIcon + '`;');
-  code = code.replace(/const doctorIcon = `<svg[\s\S]*?<\/svg>`;/g, 'const doctorIcon = `' + doctorIcon + '`;');
-  code = code.replace(/const infoIcon = `<svg[\s\S]*?<\/svg>`;/g, 'const infoIcon = `' + infoIcon + '`;');
+  code = code.replace(/const calendarIcon = `.*`;/g, 'const calendarIcon = `' + calendarIcon + '`;');
+  code = code.replace(/const doctorIcon = `.*`;/g, 'const doctorIcon = `' + doctorIcon + '`;');
+  code = code.replace(/const clockIcon = `.*`;/g, 'const clockIcon = `' + clockIcon + '`;');
+  code = code.replace(/const toothIcon = `.*`;/g, 'const toothIcon = `' + toothIcon + '`;');
+  code = code.replace(/const infoIcon = `.*`;/g, 'const infoIcon = `' + infoIcon + '`;');
 
   // Fix the layout logic in generateEmailHTML so promo hero images don't break
   const oldLogic = `<!-- The Professional Icon Circle -->
