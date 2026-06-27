@@ -468,8 +468,6 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
       return res.status(404).json({ error: 'Appointment not found' });
     }
     
-    res.json({ success: true, status });
-
     // Send email notification for status change
     if ((transporter || fallbackTransporter) && updatedApt.email) {
       const fromAddress = process.env.SMTP_USER === 'resend' 
@@ -523,6 +521,8 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
         console.error("Error sending status email:", err);
       }
     }
+
+    res.json({ success: true, status });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to update appointment' });
@@ -543,8 +543,6 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
     if (!updatedApt) {
       return res.status(404).json({ error: 'Appointment not found' });
     }
-    
-    res.json({ success: true, doctor });
 
     // Send email notification for doctor assignment
     if ((transporter || fallbackTransporter) && updatedApt.email && doctor !== 'Unassigned') {
@@ -579,6 +577,8 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
         console.error("Error sending doctor email:", err);
       }
     }
+
+    res.json({ success: true, doctor });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to assign doctor' });
