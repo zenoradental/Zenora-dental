@@ -1298,7 +1298,7 @@ const MedicalAppointmentSystem = () => {
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {loggedInUser?.role === 'Master Admin' && admin.id !== loggedInUser.id && (
+                          {loggedInUser?.role === 'Master Admin' && admin.id !== loggedInUser.id && admin.id !== 'ADM0001' && (loggedInUser.id === 'ADM0001' || admin.role !== 'Master Admin') && (
                             <div className="flex justify-end gap-2">
                               <Button variant="ghost" size="sm" onClick={() => handleUpdateRole(admin.id, admin.role === 'Master Admin' ? 'Administrator' : 'Master Admin')} className="text-zinc-500 hover:text-zinc-900 h-8 text-xs">
                                 {admin.role === 'Master Admin' ? 'Demote' : 'Promote'}
@@ -1311,7 +1311,7 @@ const MedicalAppointmentSystem = () => {
                               </Button>
                             </div>
                           )}
-                          {loggedInUser?.role !== 'Master Admin' && admin.role !== 'Master Admin' && admin.id !== loggedInUser?.id && (
+                          {loggedInUser?.role !== 'Master Admin' && admin.role !== 'Master Admin' && admin.id !== loggedInUser?.id && admin.id !== 'ADM0001' && (
                             <Button variant="ghost" size="sm" onClick={() => handleDeleteAdmin(admin.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50 h-8 text-xs">
                               Revoke Access
                             </Button>

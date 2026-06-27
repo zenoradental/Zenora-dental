@@ -612,13 +612,16 @@ app.post('/api/admins', async (req, res) => {
 // DELETE /api/admins/:id
 app.delete('/api/admins/:id', async (req, res) => {
   try {
+    if (req.params.id === 'ADM0001') {
+      return res.status(403).json({ error: 'Cannot delete the primary Master Admin' });
+    }
     const admin = await Admin.findOne({ id: req.params.id });
     if (!admin) {
       return res.status(404).json({ error: 'Admin not found' });
     }
     
     if (admin.role === 'Master Admin') {
-      return res.status(403).json({ error: 'Cannot delete the Master Admin' });
+      return res.status(403).json({ error: 'Cannot delete a Master Admin' });
     }
     
     await Admin.deleteOne({ id: req.params.id });
@@ -632,14 +635,13 @@ app.delete('/api/admins/:id', async (req, res) => {
 app.patch('/api/admins/:id/role', async (req, res) => {
   try {
     const { role } = req.body;
+    if (req.params.id === 'ADM0001') {
+      return res.status(403).json({ error: 'Cannot change the role of the primary Master Admin' });
+    }
     
     const admin = await Admin.findOne({ id: req.params.id });
     if (!admin) {
       return res.status(404).json({ error: 'Admin not found' });
-    }
-    
-    if (admin.id === 'ADM0001' && role !== 'Master Admin') {
-      return res.status(403).json({ error: 'Cannot demote the primary Master Admin' });
     }
     
     admin.role = role;
@@ -657,6 +659,9 @@ app.patch('/api/admins/:id/password', async (req, res) => {
     const { password } = req.body;
     if (!password) {
       return res.status(400).json({ error: 'Password is required' });
+    }
+    if (req.params.id === 'ADM0001') {
+      return res.status(403).json({ error: 'Cannot reset password for the primary Master Admin from standard controls' });
     }
     
     const admin = await Admin.findOne({ id: req.params.id });
