@@ -22,7 +22,9 @@ import {
   EyeOff,
   ShieldCheck,
   FileText,
-  Trash2
+  Trash2,
+  MessageCircle,
+  Star
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -107,6 +109,7 @@ interface Appointment {
   gender: string;
   phone: string;
   email: string;
+  service?: string;
   symptoms: string;
   doctor: string;
   appointmentDate: string;
@@ -818,6 +821,31 @@ const MedicalAppointmentSystem = () => {
       <Card className="border-zinc-200 shadow-sm rounded-xl">
         <CardHeader>
           <div className="space-y-4">
+            <div className="flex flex-wrap gap-2 pb-2 border-b border-zinc-100">
+              {[
+                { id: 'all', label: 'All Appointments', count: appointments.length },
+                { id: 'Pending', label: '🟡 Pending', count: appointments.filter(a => a.status === 'Pending').length },
+                { id: 'Confirmed', label: '🔵 Confirmed', count: appointments.filter(a => a.status === 'Confirmed').length },
+                { id: 'Completed', label: '🟢 Completed', count: appointments.filter(a => a.status === 'Completed').length },
+                { id: 'Cancelled', label: '🔴 Cancelled', count: appointments.filter(a => a.status === 'Cancelled').length },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setStatusFilter(tab.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                    statusFilter === tab.id
+                      ? 'bg-zinc-900 text-white shadow-sm'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${statusFilter === tab.id ? 'bg-zinc-800 text-zinc-200' : 'bg-zinc-200/80 text-zinc-700'}`}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
               <Input
@@ -922,11 +950,36 @@ const MedicalAppointmentSystem = () => {
                 {filteredAppointments.map((apt) => (
                   <TableRow key={apt.appointmentId} className="border-zinc-100">
                     <TableCell className="font-medium text-zinc-900">{apt.appointmentId}</TableCell>
-                    <TableCell className="font-medium text-zinc-900">{apt.patientName}</TableCell>
-                    <TableCell className="text-zinc-500">{apt.age}</TableCell>
-                    <TableCell className="text-zinc-500">{apt.gender}</TableCell>
-                    <TableCell className="text-zinc-500">{apt.phone}</TableCell>
-                    <TableCell className="text-zinc-500">{apt.doctor}</TableCell>
+                    <TableCell className="font-medium text-zinc-900">
+                      <div className="flex items-center gap-1.5">
+                        {apt.patientName}
+                        {apt.service && apt.service.includes('Priority') && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-50 text-teal-700 border border-teal-200" title="Priority Consultation Lead">
+                            <Star className="w-2.5 h-2.5 mr-0.5 fill-teal-500 text-teal-500" />
+                            Priority
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-zinc-500">{apt.age || '-'}</TableCell>
+                    <TableCell className="text-zinc-500">{apt.gender || '-'}</TableCell>
+                    <TableCell className="text-zinc-500">
+                      <div className="flex items-center gap-1.5">
+                        <span>{apt.phone}</span>
+                        {apt.phone && (
+                          <a
+                            href={`https://wa.me/91${apt.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${apt.patientName}, this is a friendly message from Zenora Dental regarding your dental consultation.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center p-1 rounded-md bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm"
+                            title="Chat on WhatsApp"
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                          </a>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-zinc-500">{apt.doctor || 'Unassigned'}</TableCell>
                     <TableCell className="text-zinc-500">{apt.appointmentDate}</TableCell>
                     <TableCell className="text-zinc-500">{apt.appointmentTime}</TableCell>
                     <TableCell>{getStatusBadge(apt.status)}</TableCell>
