@@ -21,37 +21,39 @@ const setupTransporter = async () => {
     const isResend = process.env.SMTP_USER === 'resend';
     const host = isResend ? 'smtp.resend.com' : (process.env.SMTP_HOST || 'smtp.gmail.com');
     
-    // Primary: Port 465 (SSL/TLS direct) - bypasses cloud datacenter STARTTLS throttling
+    // Primary: Port 587 (STARTTLS) with family: 4 to force IPv4 resolution in serverless clouds
     transporter = nodemailer.createTransport({
-      host: host,
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 8000,
-      tls: isResend ? {} : { servername: host, rejectUnauthorized: false }
-    });
-
-    // Fallback: Port 587 (STARTTLS)
-    fallbackTransporter = nodemailer.createTransport({
       host: host,
       port: 587,
       secure: false,
+      family: 4,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 8000,
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 5000,
       tls: isResend ? {} : { servername: host, rejectUnauthorized: false }
     });
 
-    console.log('Using configured SMTP credentials with dual 465/587 failover.');
+    // Fallback: Port 465 (SSL/TLS direct) with family: 4
+    fallbackTransporter = nodemailer.createTransport({
+      host: host,
+      port: 465,
+      secure: true,
+      family: 4,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      },
+      connectionTimeout: 4000,
+      greetingTimeout: 4000,
+      socketTimeout: 5000,
+      tls: isResend ? {} : { servername: host, rejectUnauthorized: false }
+    });
+
+    console.log('Using configured SMTP credentials with IPv4 failover.');
   } else {
     console.warn('No SMTP credentials found in environment. Email sending will be disabled.');
     transporter = null;
@@ -266,6 +268,7 @@ const appointmentSchema = new mongoose.Schema({
   gender: String,
   phone: String,
   email: String,
+  service: String,
   symptoms: String,
   doctor: String,
   appointmentDate: String,
@@ -399,6 +402,7 @@ app.post('/api/appointments', async (req, res) => {
       gender: newApt.gender || 'Not specified',
       phone: newApt.phone || '',
       email: newApt.email || '',
+      service: newApt.service || 'General Checkup',
       symptoms: newApt.notes || 'No notes provided',
       doctor: 'Unassigned',
       appointmentDate: newApt.date || '',
@@ -422,7 +426,7 @@ app.post('/api/appointments', async (req, res) => {
           from: fromAddress,
           to: appointmentRecord.email,
           subject: `Appointment Confirmed - Tracking ID: ${appointmentRecord.appointmentId}`,
-          text: `Appointment Confirmed! Thank you, ${appointmentRecord.patientName}. Your Tracking ID is ${appointmentRecord.appointmentId}. Service: General Checkup. Date: ${appointmentRecord.appointmentDate}. Time: ${appointmentRecord.appointmentTime}. Please ensure you arrive 10 minutes prior to your scheduled time.`,
+          text: `Appointment Confirmed! Thank you, ${appointmentRecord.patientName}. Your Tracking ID is ${appointmentRecord.appointmentId}. Service: ${appointmentRecord.service || 'General Checkup'}. Date: ${appointmentRecord.appointmentDate}. Time: ${appointmentRecord.appointmentTime}. Please ensure you arrive 10 minutes prior to your scheduled time.`,
           html: generateEmailHTML(
             'Appointment Confirmed',
             appointmentRecord.patientName,
@@ -434,7 +438,7 @@ app.post('/api/appointments', async (req, res) => {
               { label: 'Tracking ID', value: appointmentRecord.appointmentId },
               { label: 'Date', value: appointmentRecord.appointmentDate },
               { label: 'Time', value: appointmentRecord.appointmentTime },
-              { label: 'Service', value: 'General Checkup' }
+              { label: 'Service', value: appointmentRecord.service || 'General Checkup' }
             ],
             { text: 'Check Appointment Status', url: `${process.env.FRONTEND_URL || 'https://zenoradentalofficial.netlify.app'}/check-status.html` },
             calendarIcon
