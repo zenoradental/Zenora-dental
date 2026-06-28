@@ -381,7 +381,17 @@ const MedicalAppointmentSystem = () => {
           // Merge fetched appointments with sample ones, placing new ones first
           const existingIds = new Set(data.map((a: Appointment) => a.appointmentId));
           const filteredSamples = sampleAppointments.filter(a => !existingIds.has(a.appointmentId));
-          setAppointments([...data, ...filteredSamples]);
+          const merged = [...data, ...filteredSamples].sort((a, b) => {
+            const timeA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
+            const timeB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
+            if (timeA !== timeB && timeA > 0 && timeB > 0) return timeB - timeA;
+            const idA = parseInt(String(a.appointmentId).replace(/\D/g, ''), 10) || 0;
+            const idB = parseInt(String(b.appointmentId).replace(/\D/g, ''), 10) || 0;
+            if (idA !== idB) return idB - idA;
+            return new Date(b.appointmentDate + ' ' + (b.appointmentTime || '')).getTime() - 
+                   new Date(a.appointmentDate + ' ' + (a.appointmentTime || '')).getTime();
+          });
+          setAppointments(merged);
         }
       } catch (err) {
         console.error('Failed to fetch appointments:', err);
@@ -542,13 +552,25 @@ const MedicalAppointmentSystem = () => {
     })
     .sort((a, b) => {
       if (sortBy === 'newest') {
-        return new Date(b.appointmentDate + ' ' + b.appointmentTime).getTime() - 
-               new Date(a.appointmentDate + ' ' + a.appointmentTime).getTime();
+        const timeA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
+        const timeB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
+        if (timeA !== timeB && timeA > 0 && timeB > 0) return timeB - timeA;
+        const idA = parseInt(String(a.appointmentId).replace(/\D/g, ''), 10) || 0;
+        const idB = parseInt(String(b.appointmentId).replace(/\D/g, ''), 10) || 0;
+        if (idA !== idB) return idB - idA;
+        return new Date(b.appointmentDate + ' ' + (b.appointmentTime || '')).getTime() - 
+               new Date(a.appointmentDate + ' ' + (a.appointmentTime || '')).getTime();
       } else if (sortBy === 'oldest') {
-        return new Date(a.appointmentDate + ' ' + a.appointmentTime).getTime() - 
-               new Date(b.appointmentDate + ' ' + b.appointmentTime).getTime();
+        const timeA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
+        const timeB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
+        if (timeA !== timeB && timeA > 0 && timeB > 0) return timeA - timeB;
+        const idA = parseInt(String(a.appointmentId).replace(/\D/g, ''), 10) || 0;
+        const idB = parseInt(String(b.appointmentId).replace(/\D/g, ''), 10) || 0;
+        if (idA !== idB) return idA - idB;
+        return new Date(a.appointmentDate + ' ' + (a.appointmentTime || '')).getTime() - 
+               new Date(b.appointmentDate + ' ' + (b.appointmentTime || '')).getTime();
       } else if (sortBy === 'name') {
-        return a.patientName.localeCompare(b.patientName);
+        return (a.patientName || '').localeCompare(b.patientName || '');
       }
       return 0;
     });

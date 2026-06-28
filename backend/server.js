@@ -351,7 +351,7 @@ const generateId = async () => {
 // GET all appointments
 app.get('/api/appointments', async (req, res) => {
   try {
-    const appointments = await Appointment.find().lean();
+    const appointments = await Appointment.find().sort({ createdAt: -1, _id: -1 }).lean();
     res.json(appointments);
   } catch (err) {
     console.error('Failed to read appointments:', err);
