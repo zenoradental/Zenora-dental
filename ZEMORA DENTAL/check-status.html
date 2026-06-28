@@ -117,7 +117,7 @@
                     const res = await fetch(`https://zenora-backend-api.vercel.app${urlPath}`);
                     if (res.ok) return await res.json();
                 } catch (e) { console.warn('Vercel fetch failed, trying Render...', e); }
-                const res2 = await fetch(`https://zenora-backend-6ghi.onrender.com${urlPath}`);
+                const res2 = await fetch(`https://zenora-backend-6qw0.onrender.com${urlPath}`);
                 if (!res2.ok) throw new Error('Not found');
                 return await res2.json();
             }
