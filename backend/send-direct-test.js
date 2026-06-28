@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const calendarIcon = `<img src="https://img.icons8.com/ios/50/475569/calendar--v1.png" alt="Calendar" style="width: 24px; height: 24px; display: block; border: 0;" />`;
 
 const generateEmailHTML = (title, patientName, paragraphs, highlights, cta, heroImageUrl, postHighlightsParagraphs = []) => {
-  const imageUrl = heroImageUrl || 'https://zenoradentalofficial.netlify.app/assets/img/gen_about-hero-image.jpg';
+  const imageUrl = heroImageUrl || 'https://zenoradentalofficial.vercel.app/assets/img/gen_about-hero-image.jpg';
   
   // If the passed imageUrl contains an img tag, it means we are using Option 5C iconography instead of a hero image
   const isIcon = imageUrl.trim().startsWith('<img');
@@ -155,7 +155,7 @@ const runTest = async () => {
         { label: 'Time', value: '10:00 AM' },
         { label: 'Service', value: 'General Checkup' }
       ],
-      { text: 'Check Appointment Status', url: 'https://zenoradentalofficial.netlify.app/check-status.html' },
+      { text: 'Check Appointment Status', url: 'https://zenoradentalofficial.vercel.app/check-status.html' },
       calendarIcon
     )
   };
