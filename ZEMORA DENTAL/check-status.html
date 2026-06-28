@@ -114,7 +114,7 @@
 
             async function fetchWithFallback(urlPath) {
                 try {
-                    const res = await fetch(`https://zenora-backend-api.vercel.app${urlPath}`);
+                    const res = await fetch(`https://zenora-backend-6qw0.onrender.com${urlPath}`);
                     if (res.ok) return await res.json();
                 } catch (e) { console.warn('Vercel fetch failed, trying Render...', e); }
                 const res2 = await fetch(`https://zenora-backend-6qw0.onrender.com${urlPath}`);
