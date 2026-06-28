@@ -1,5 +1,7 @@
 // Build deploy trigger v2026.06.28
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+const dns = require('dns');
+try { dns.setDefaultResultOrder('ipv4first'); } catch (e) {}
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
