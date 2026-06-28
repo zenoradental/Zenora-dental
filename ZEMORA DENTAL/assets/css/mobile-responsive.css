@@ -139,5 +139,25 @@
     gap: 48px !important;
 }
 
+/* Mobile Navbar Open State */
+@media screen and (max-width: 991px) {
+    .navbar_menu.active, .w-nav-menu.active {
+        display: flex !important;
+        position: absolute !important;
+        top: 64px !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        background-color: rgba(1, 31, 35, 0.98) !important;
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.5) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+        z-index: 9999 !important;
+        max-height: calc(100vh - 64px) !important;
+        overflow-y: auto !important;
+    }
+}
+
 
 
