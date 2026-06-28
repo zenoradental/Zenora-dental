@@ -262,8 +262,6 @@ app.get('/api/test-email-diagnostic', async (req, res) => {
     return res.status(500).json({ status: 'error', message: 'Transporters are null' });
   }
   try {
-    if (transporter) await transporter.verify();
-    
     // Attempt to send a test email
     const fromAddress = process.env.SMTP_USER === 'resend' 
         ? 'onboarding@resend.dev' 
