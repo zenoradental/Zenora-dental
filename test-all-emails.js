@@ -35,7 +35,7 @@ const generateEmailHTML = (title, patientName, paragraphs, cta) => {
           <table width="100%" max-width="600" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; overflow: hidden; border: 1px solid #E5E7EB; border-radius: 2px;">
             <tr>
               <td>
-                <img src="https://zenoradentalofficial.netlify.app/assets/img/gen_about-hero-image.jpg" alt="Zenora Dental Clinic" style="display: block; width: 100%; height: 250px; object-fit: cover;" />
+                <img src="https://zenoradentalofficial.vercel.app/assets/img/gen_about-hero-image.jpg" alt="Zenora Dental Clinic" style="display: block; width: 100%; height: 250px; object-fit: cover;" />
               </td>
             </tr>
             <tr>
@@ -114,7 +114,7 @@ const sendTestEmails = async () => {
       '<strong>Tracking ID:</strong> APT1024<br><strong>Date:</strong> 2026-07-01<br><strong>Time:</strong> 10:00 AM<br><strong>Service:</strong> General Checkup',
       'Please ensure you arrive 10 minutes prior to your scheduled time. If you have any questions or need to reschedule, please contact our support team.'
     ],
-    { text: 'Check Appointment Status', url: 'https://zenoradentalofficial.netlify.app/check-status.html' }
+    { text: 'Check Appointment Status', url: 'https://zenoradentalofficial.vercel.app/check-status.html' }
   );
 
   // 2. Doctor Assigned
