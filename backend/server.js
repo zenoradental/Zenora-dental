@@ -418,10 +418,7 @@ app.post('/api/appointments', async (req, res) => {
     
     await appointmentRecord.save();
     
-    // Return instant response so the user never waits on email timeouts!
-    res.status(201).json({ success: true, appointment: appointmentRecord });
-
-    // Send email notification non-blockingly in the background
+    // Send email notification reliably before ending request
     if ((transporter || fallbackTransporter) && appointmentRecord.email) {
       const fromAddress = process.env.SMTP_USER === 'resend' 
         ? 'onboarding@resend.dev' 
@@ -450,10 +447,15 @@ app.post('/api/appointments', async (req, res) => {
         )
       };
 
-      sendEmailReliably(mailOptions)
-        .then(info => { if (info) console.log("Email sent: %s", info.messageId); })
-        .catch(emailErr => console.error("Non-fatal background error sending confirmation email:", emailErr.message || emailErr));
+      try {
+        const info = await sendEmailReliably(mailOptions);
+        if (info) console.log("Email sent: %s", info.messageId);
+      } catch (emailErr) {
+        console.error("Non-fatal error sending confirmation email:", emailErr.message || emailErr);
+      }
     }
+
+    res.status(201).json({ success: true, appointment: appointmentRecord });
   } catch (err) {
     console.error("Fatal error saving appointment:", err);
     res.status(500).json({ error: 'Failed to save appointment', details: err.message });
@@ -521,9 +523,12 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
         subject: subject,
         html: htmlBody
       };
-      sendEmailReliably(mailOptions)
-        .then(info => { if (info) console.log("Status email sent:", info.messageId); })
-        .catch(err => console.error("Error sending status email:", err));
+      try {
+        const info = await sendEmailReliably(mailOptions);
+        if (info) console.log("Status email sent:", info.messageId);
+      } catch (err) {
+        console.error("Error sending status email:", err);
+      }
     }
 
     res.json({ success: true, status });
@@ -574,9 +579,12 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
           doctorIcon
         )
       };
-      sendEmailReliably(mailOptions)
-        .then(info => { if (info) console.log("Doctor email sent:", info.messageId); })
-        .catch(err => console.error("Error sending doctor email:", err));
+      try {
+        const info = await sendEmailReliably(mailOptions);
+        if (info) console.log("Doctor email sent:", info.messageId);
+      } catch (err) {
+        console.error("Error sending doctor email:", err);
+      }
     }
 
     res.json({ success: true, doctor });
