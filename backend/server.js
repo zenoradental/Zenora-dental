@@ -23,36 +23,38 @@ const setupTransporter = async () => {
     const isResend = process.env.SMTP_USER === 'resend';
     const host = isResend ? 'smtp.resend.com' : (process.env.SMTP_HOST || 'smtp.gmail.com');
     
-    // Primary: Port 587 (STARTTLS) with family: 4 to force IPv4 resolution in serverless clouds
+    const ipv4Lookup = (hostname, options, callback) => dns.lookup(hostname, { family: 4 }, callback);
+
+    // Primary: Port 587 (STARTTLS) with forced IPv4 socket lookup
     transporter = nodemailer.createTransport({
       host: host,
       port: 587,
       secure: false,
-      family: 4,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
-      connectionTimeout: 4000,
-      greetingTimeout: 4000,
-      socketTimeout: 5000,
-      tls: isResend ? {} : { servername: host, rejectUnauthorized: false }
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000,
+      socketOptions: { lookup: ipv4Lookup },
+      tls: isResend ? { lookup: ipv4Lookup } : { servername: host, rejectUnauthorized: false, lookup: ipv4Lookup }
     });
 
-    // Fallback: Port 465 (SSL/TLS direct) with family: 4
+    // Fallback: Port 465 (SSL/TLS direct) with forced IPv4 socket lookup
     fallbackTransporter = nodemailer.createTransport({
       host: host,
       port: 465,
       secure: true,
-      family: 4,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
-      connectionTimeout: 4000,
-      greetingTimeout: 4000,
-      socketTimeout: 5000,
-      tls: isResend ? {} : { servername: host, rejectUnauthorized: false }
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000,
+      socketOptions: { lookup: ipv4Lookup },
+      tls: isResend ? { lookup: ipv4Lookup } : { servername: host, rejectUnauthorized: false, lookup: ipv4Lookup }
     });
 
     console.log('Using configured SMTP credentials with IPv4 failover.');
