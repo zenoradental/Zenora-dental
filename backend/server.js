@@ -610,8 +610,8 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
-    const admin = await Admin.findOne({ email, password });
-    if (admin) {
+    const admin = await Admin.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
+    if (admin && (admin.password === password || admin.password.toLowerCase() === password.toLowerCase())) {
       const setting = await Setting.findOne();
       
       if (setting && setting.maintenanceMode && admin.role !== 'Master Admin') {
