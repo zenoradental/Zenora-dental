@@ -594,6 +594,17 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
   }
 });
 
+// DELETE single appointment by ID
+app.delete('/api/appointments/:id', async (req, res) => {
+  try {
+    await Appointment.deleteOne({ id: req.params.id });
+    res.json({ success: true, message: 'Appointment deleted.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete appointment' });
+  }
+});
+
 // DELETE all appointments
 app.delete('/api/appointments', async (req, res) => {
   try {

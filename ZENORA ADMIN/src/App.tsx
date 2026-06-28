@@ -21,7 +21,8 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
-  FileText
+  FileText,
+  Trash2
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -989,6 +990,15 @@ const MedicalAppointmentSystem = () => {
                             <FileText className="h-4 w-4" />
                           </Button>
                         )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg border-zinc-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-zinc-800 dark:hover:bg-red-950/30"
+                          onClick={() => handleDeleteAppointment(apt)}
+                          title="Delete Appointment Record"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -1279,6 +1289,29 @@ const MedicalAppointmentSystem = () => {
         } catch (err) {
           console.error(err);
           showToast('Network error while deleting patient.', 'error');
+        }
+      }
+    });
+  };
+
+  const handleDeleteAppointment = (apt: any) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Appointment',
+      message: `Are you sure you want to delete appointment ${apt.appointmentId} for ${apt.patientName}?`,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${encodeURIComponent(apt.appointmentId)}`, { method: 'DELETE' });
+          if (res.ok) {
+            setAppointments(prev => prev.filter(a => a.appointmentId !== apt.appointmentId));
+            showToast('Appointment deleted.', 'success');
+          } else {
+            const err = await res.json();
+            showToast(err.error || 'Failed to delete', 'error');
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Network error while deleting appointment.', 'error');
         }
       }
     });
@@ -2221,6 +2254,16 @@ const MedicalAppointmentSystem = () => {
                                  ))}
                                </SelectContent>
                              </Select>
+                             <div className="mt-4 flex justify-end">
+                               <Button
+                                 size="sm"
+                                 variant="outline"
+                                 className="text-red-600 border-red-200 hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-950/30 flex items-center gap-1.5"
+                                 onClick={() => handleDeleteAppointment(apt)}
+                               >
+                                 <Trash2 className="h-4 w-4" /> Delete Appointment
+                               </Button>
+                             </div>
                           </div>
                         </div>
                       </CardContent>
