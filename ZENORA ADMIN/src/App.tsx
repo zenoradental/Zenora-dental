@@ -689,6 +689,8 @@ const MedicalAppointmentSystem = () => {
       { name: "Thu", value: 70 }, { name: "Fri", value: 85 }, { name: "Sat", value: 60 }, { name: "Sun", value: 40 }
     ];
 
+    const uniquePatientsCount = new Set(appointments.map(a => a.email || a.phone || a.patientName)).size;
+
     return (
       <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
         <div>
@@ -713,7 +715,7 @@ const MedicalAppointmentSystem = () => {
           />
           <StatsCardComponent
             title="Total Patients"
-            currentValue={appointments.length}
+            currentValue={uniquePatientsCount}
             description="Registered patients"
             icon={<Users />}
             chartData={chartData.map(d => ({ ...d, color: 'bg-green-500' }))}
