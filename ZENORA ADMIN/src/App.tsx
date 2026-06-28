@@ -531,7 +531,7 @@ const MedicalAppointmentSystem = () => {
         (apt.email?.toLowerCase() || '').includes(searchLower) ||
         (apt.doctor?.toLowerCase() || '').includes(searchLower);
       
-      const matchesStatus = statusFilter === 'all' || apt.status === statusFilter;
+      const matchesStatus = statusFilter === 'all' ? true : statusFilter === 'priority' ? Boolean(apt.service && apt.service.includes('Priority')) : apt.status === statusFilter;
       
       let matchesDate = true;
       const today = new Date();
@@ -822,6 +822,7 @@ const MedicalAppointmentSystem = () => {
             <div className="flex flex-wrap gap-2 pb-2 border-b border-zinc-100">
               {[
                 { id: 'all', label: 'All Appointments', count: appointments.length },
+                { id: 'priority', label: '⚡ Priority Leads', count: appointments.filter(a => Boolean(a.service && a.service.includes('Priority'))).length },
                 { id: 'Pending', label: '🟡 Pending', count: appointments.filter(a => a.status === 'Pending').length },
                 { id: 'Confirmed', label: '🔵 Confirmed', count: appointments.filter(a => a.status === 'Confirmed').length },
                 { id: 'Completed', label: '🟢 Completed', count: appointments.filter(a => a.status === 'Completed').length },
@@ -832,12 +833,12 @@ const MedicalAppointmentSystem = () => {
                   onClick={() => setStatusFilter(tab.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
                     statusFilter === tab.id
-                      ? 'bg-zinc-900 text-white shadow-sm'
-                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                      ? 'bg-zinc-900 text-white shadow-sm dark:bg-zinc-100 dark:text-zinc-900'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
                   }`}
                 >
                   <span>{tab.label}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${statusFilter === tab.id ? 'bg-zinc-800 text-zinc-200' : 'bg-zinc-200/80 text-zinc-700'}`}>
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] ${statusFilter === tab.id ? 'bg-zinc-800 text-zinc-200 dark:bg-zinc-200 dark:text-zinc-800' : 'bg-zinc-200/80 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300'}`}>
                     {tab.count}
                   </span>
                 </button>
@@ -857,6 +858,7 @@ const MedicalAppointmentSystem = () => {
             <div className="flex flex-col sm:flex-row gap-3">
               <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || 'all')} items={[
                 { value: 'all', label: 'All Status' },
+                { value: 'priority', label: '⚡ Priority Leads' },
                 { value: 'Pending', label: 'Pending' },
                 { value: 'Confirmed', label: 'Confirmed' },
                 { value: 'Completed', label: 'Completed' },
@@ -928,6 +930,21 @@ const MedicalAppointmentSystem = () => {
           </div>
         </CardHeader>
         <CardContent>
+          {statusFilter === 'priority' && (
+            <div className="mb-6 p-4 rounded-lg bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm border border-zinc-800">
+              <div>
+                <h3 className="font-bold text-base tracking-tight flex items-center gap-2">
+                  <span>⚡ Priority Homepage Callback Queue</span>
+                </h3>
+                <p className="text-xs text-zinc-300 dark:text-zinc-600 mt-0.5">
+                  Patients in this specialized section requested immediate 10-minute telephone contact via the website widget.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded bg-zinc-800 text-zinc-100 dark:bg-zinc-200 dark:text-zinc-800">
+                Active Leads: {filteredAppointments.length}
+              </div>
+            </div>
+          )}
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
