@@ -22,8 +22,7 @@ import {
   EyeOff,
   ShieldCheck,
   FileText,
-  Trash2,
-  Zap
+  Trash2
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -947,15 +946,14 @@ const MedicalAppointmentSystem = () => {
               </TableHeader>
               <TableBody>
                 {filteredAppointments.map((apt) => (
-                  <TableRow key={apt.appointmentId} className={`transition-colors ${apt.service && apt.service.includes('Priority') ? 'bg-amber-50/90 hover:bg-amber-100/90 dark:bg-amber-950/30 border-l-4 border-l-amber-500 shadow-sm' : 'border-zinc-100 hover:bg-zinc-50/50'}`}>
+                  <TableRow key={apt.appointmentId} className={`transition-colors ${apt.service && apt.service.includes('Priority') ? 'bg-zinc-100/80 hover:bg-zinc-200/60 dark:bg-zinc-800/50 border-l-4 border-l-zinc-900 dark:border-l-zinc-100 font-medium' : 'border-zinc-100 hover:bg-zinc-50/50'}`}>
                     <TableCell className="font-medium text-zinc-900">{apt.appointmentId}</TableCell>
                     <TableCell className="font-medium text-zinc-900">
                       <div className="flex items-center gap-2">
-                        <span>{apt.patientName}</span>
+                        <span>{apt.patientName === 'Unknown' || !apt.patientName ? 'New Inquiry' : apt.patientName}</span>
                         {apt.service && apt.service.includes('Priority') && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm animate-pulse" title="10-Minute Homepage Priority Callback">
-                            <Zap className="w-3 h-3 fill-white" />
-                            URGENT VIP CALLBACK
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 uppercase tracking-wider shadow-sm" title="Homepage Priority Callback">
+                            Priority Lead
                           </span>
                         )}
                       </div>
@@ -972,11 +970,11 @@ const MedicalAppointmentSystem = () => {
                         {apt.service && apt.service.includes('Priority') && (
                           <a
                             href={`tel:${apt.phone}`}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-md hover:shadow transition-all transform hover:-translate-y-0.5"
-                            title="Initiate Instant Telephone Consultation"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 font-medium text-xs transition-colors shadow-sm"
+                            title="Initiate Telephone Consultation"
                           >
-                            <Phone className="w-3.5 h-3.5 fill-white animate-bounce" />
-                            Call Now
+                            <Phone className="w-3 h-3" />
+                            Call
                           </a>
                         )}
                         <Button

@@ -400,7 +400,7 @@ app.post('/api/appointments', async (req, res) => {
 
     const appointmentRecord = new Appointment({
       appointmentId: nextAptId,
-      patientName: newApt.name || 'Unknown',
+      patientName: newApt.patientName || newApt.name || 'New Patient',
       age: newApt.age ? parseInt(newApt.age) : 30,
       gender: newApt.gender || 'Not specified',
       phone: newApt.phone || '',
