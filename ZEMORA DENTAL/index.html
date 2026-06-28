@@ -1828,6 +1828,28 @@
                 var name=(f.querySelector('input[name="name"]').value||'').trim();
                 var phone=(f.querySelector('input[name="phone"]').value||'').trim();
                 if(!name||!phone){return false;}
+                
+                var btn = f.querySelector('button[type="submit"]');
+                if(btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+                var now = new Date();
+                var dateStr = now.toISOString().split('T')[0];
+                var timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                fetch('https://zenora-backend-black.vercel.app/api/appointments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        patientName: name,
+                        phone: phone,
+                        email: 'callback@zenoradental.com',
+                        service: '⚡ 10-Minute Callback Request',
+                        symptoms: 'Patient requested an urgent callback from the website homepage widget.',
+                        appointmentDate: dateStr,
+                        appointmentTime: timeStr
+                    })
+                }).catch(function(err){ console.error('Callback error:', err); });
+
                 var card=f.closest('.lead-form_card');
                 if(card){
                     f.style.display='none';
