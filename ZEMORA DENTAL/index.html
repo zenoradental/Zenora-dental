@@ -224,18 +224,18 @@
                                     </div>
                                     <div class="lead-form_card">
                                         <div class="lead-form_head">
-                                            <div class="lead-form_title">Book a visit</div>
-                                            <div class="lead-form_sub">Get a callback within 10 minutes</div>
+                                            <div class="lead-form_title">Priority Consultation</div>
+                                            <div class="lead-form_sub">Request a rapid telephone consultation</div>
                                         </div>
                                         <form class="lead-form" onsubmit="return zenoraLead(event)">
-                                            <input class="lead-form_input" type="text" name="name" placeholder="Your name" required="">
-                                            <input class="lead-form_input" type="tel" name="phone" placeholder="Phone number" pattern="[0-9]{10}" maxlength="10" title="Please enter exactly 10 digits" required="">
-                                            <button class="lead-form_btn" type="submit">Request a callback</button>
-                                            <div class="lead-form_note">No spam. A real person calls you back, fast.</div>
+                                            <input class="lead-form_input" type="text" name="name" placeholder="Full Name" required="">
+                                            <input class="lead-form_input" type="tel" name="phone" placeholder="Mobile Phone Number" pattern="[0-9]{10}" maxlength="10" title="Please enter exactly 10 digits" required="">
+                                            <button class="lead-form_btn" type="submit">Request Priority Callback</button>
+                                            <div class="lead-form_note">Strictly confidential. A Care Coordinator will call you promptly.</div>
                                         </form>
                                         <div class="lead-form_success" style="display:none">
-                                            <div class="lead-form_title">Thanks! You're all set.</div>
-                                            <div class="lead-form_sub">Our team will call you within 10 minutes.</div>
+                                            <div class="lead-form_title" style="color: #0d9488;">Priority Request Received</div>
+                                            <div class="lead-form_sub">A Zenora Care Coordinator will contact you shortly to confirm your visit.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -1842,9 +1842,9 @@
                     body: JSON.stringify({
                         patientName: name,
                         phone: phone,
-                        email: 'callback@zenoradental.com',
-                        service: '⚡ 10-Minute Callback Request',
-                        symptoms: 'Patient requested an urgent callback from the website homepage widget.',
+                        email: 'priority-lead@zenoradental.com',
+                        service: '⭐ Priority Telephone Consultation',
+                        symptoms: 'Priority consultation requested via Zenora Homepage portal. Patient requested rapid contact to schedule dental evaluation.',
                         appointmentDate: dateStr,
                         appointmentTime: timeStr
                     })
