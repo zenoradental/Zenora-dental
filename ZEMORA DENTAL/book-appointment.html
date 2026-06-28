@@ -1154,10 +1154,10 @@
 
                         let response;
                         try {
-                            response = await fetch('https://zenora-backend-6qw0.onrender.com/api/appointments');
+                            response = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
                             if (!response.ok) throw new Error('Vercel failed');
                         } catch (e) {
-                            response = await fetch('https://zenora-backend-6qw0.onrender.com/api/appointments');
+                            response = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
                         }
                         const appointments = await response.json();
                         const isBooked = appointments.some(apt =>
@@ -1213,7 +1213,7 @@
 
                 async function postAppointmentWithFallback(payloadData) {
                     try {
-                        const res = await fetch(`https://zenora-backend-6qw0.onrender.com/api/appointments`, {
+                        const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payloadData)
@@ -1222,7 +1222,7 @@
                         if (res.ok) return { success: true, data };
                         if (res.status === 500 || data.error === 'Failed to save appointment') {
                             try {
-                                const checkRes = await fetch('https://zenora-backend-6qw0.onrender.com/api/appointments');
+                                const checkRes = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
                                 if (checkRes.ok) {
                                     const apts = await checkRes.json();
                                     const saved = apts.find(a => a.patientName === payloadData.name && a.appointmentDate === payloadData.date && a.appointmentTime === payloadData.time);
@@ -1235,7 +1235,7 @@
                         console.warn('Vercel POST failed, falling back to Render...', err);
                     }
                     try {
-                        const res2 = await fetch(`https://zenora-backend-6qw0.onrender.com/api/appointments`, {
+                        const res2 = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payloadData)
@@ -1244,7 +1244,7 @@
                         if (res2.ok) return { success: true, data: data2 };
                         if (res2.status === 500 || data2.error === 'Failed to save appointment') {
                             try {
-                                const checkRes2 = await fetch('https://zenora-backend-6qw0.onrender.com/api/appointments');
+                                const checkRes2 = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
                                 if (checkRes2.ok) {
                                     const apts2 = await checkRes2.json();
                                     const saved2 = apts2.find(a => a.patientName === payloadData.name && a.appointmentDate === payloadData.date && a.appointmentTime === payloadData.time);
