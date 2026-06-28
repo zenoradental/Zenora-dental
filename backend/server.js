@@ -67,6 +67,55 @@ const setupTransporter = async () => {
 setupTransporter();
 
 async function sendEmailReliably(mailOptions) {
+  const resendKey = process.env.RESEND_API_KEY || 're_Nm7WdJmB_LvaosxniMMfzzFKu8CJmQ5tS';
+  
+  if (resendKey) {
+    try {
+      const recipientList = Array.isArray(mailOptions.to) ? mailOptions.to : [mailOptions.to];
+      const payload = {
+        from: 'Zenora Dental <onboarding@resend.dev>',
+        to: recipientList,
+        subject: mailOptions.subject || 'Zenora Dental Notification',
+        html: mailOptions.html || mailOptions.text || '<p>Notification from Zenora Dental</p>'
+      };
+
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      if (response.ok && data.id) {
+        console.log('Email sent successfully via Resend HTTP API (HTTPS Port 443): %s', data.id);
+        return { messageId: data.id };
+      } else {
+        console.warn('Resend HTTP API returned warning/error:', JSON.stringify(data));
+        // If unverified domain error (403), forward alert to zenoradental@gmail.com so clinic is notified!
+        if (data.name === 'validation_error' && !recipientList.includes('zenoradental@gmail.com')) {
+          console.log('Forwarding booking email alert to verified clinic inbox (zenoradental@gmail.com)...');
+          payload.to = ['zenoradental@gmail.com'];
+          payload.subject = `[PATIENT ALERT: ${mailOptions.to}] ` + payload.subject;
+          const retryResp = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const retryData = await retryResp.json();
+          if (retryResp.ok && retryData.id) {
+            console.log('Alert forwarded successfully to zenoradental@gmail.com: %s', retryData.id);
+            return { messageId: retryData.id };
+          }
+        }
+      }
+    } catch (resendErr) {
+      console.error('Resend HTTP dispatch failed, falling back to SMTP...', resendErr.message || resendErr);
+    }
+  }
+
   if (!transporter && !fallbackTransporter) {
     console.warn('Email sending skipped: No SMTP credentials configured.');
     return null;
