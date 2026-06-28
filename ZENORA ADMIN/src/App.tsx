@@ -271,30 +271,46 @@ const MedicalAppointmentSystem = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  useEffect(() => {
-    if (currentPage === 'settings') {
-      fetch(`https://zenora-backend-black.vercel.app/api/admins`)
-        .then(res => res.json())
-        .then(data => setAdmins(data))
-        .catch(console.error);
-    }
-  }, [currentPage]);
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setLoggedInUser(null);
+    localStorage.removeItem('adminLoggedIn');
+    sessionStorage.removeItem('adminLoggedIn');
+    localStorage.removeItem('adminUser');
+    sessionStorage.removeItem('adminUser');
+    setEmail('');
+    setPassword('');
+    setCurrentPage('dashboard');
+  };
 
   useEffect(() => {
-    if (loggedInUser && admins.length > 0) {
-      const latestUser = admins.find(a => a.id === loggedInUser.id);
-      if (latestUser && latestUser.role !== loggedInUser.role) {
-        const updatedUser = { ...loggedInUser, role: latestUser.role };
-        setLoggedInUser(updatedUser);
-        if (localStorage.getItem('adminUser')) {
-          localStorage.setItem('adminUser', JSON.stringify(updatedUser));
-        }
-        if (sessionStorage.getItem('adminUser')) {
-          sessionStorage.setItem('adminUser', JSON.stringify(updatedUser));
-        }
-      }
+    if (isLoggedIn) {
+      fetch(`https://zenora-backend-black.vercel.app/api/admins`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setAdmins(data);
+            if (loggedInUser) {
+              const latestUser = data.find(a => a.id === loggedInUser.id || (a.email && loggedInUser.email && a.email.toLowerCase() === loggedInUser.email.toLowerCase()));
+              if (!latestUser) {
+                handleLogout();
+                showToast("Your account access has been revoked.", "error");
+              } else if (latestUser.role !== loggedInUser.role) {
+                const updatedUser = { ...loggedInUser, role: latestUser.role };
+                setLoggedInUser(updatedUser);
+                if (localStorage.getItem('adminUser')) {
+                  localStorage.setItem('adminUser', JSON.stringify(updatedUser));
+                }
+                if (sessionStorage.getItem('adminUser')) {
+                  sessionStorage.setItem('adminUser', JSON.stringify(updatedUser));
+                }
+              }
+            }
+          }
+        })
+        .catch(console.error);
     }
-  }, [admins]);
+  }, [isLoggedIn, currentPage]);
 
   useEffect(() => {
     if (darkMode) {
@@ -503,17 +519,7 @@ const MedicalAppointmentSystem = () => {
     }
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setLoggedInUser(null);
-    localStorage.removeItem('adminLoggedIn');
-    sessionStorage.removeItem('adminLoggedIn');
-    localStorage.removeItem('adminUser');
-    sessionStorage.removeItem('adminUser');
-    setEmail('');
-    setPassword('');
-    setCurrentPage('dashboard');
-  };
+
 
   const filteredAppointments = appointments
     .filter(apt => {
