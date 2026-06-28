@@ -1261,6 +1261,29 @@ const MedicalAppointmentSystem = () => {
     });
   };
 
+  const handleDeletePatient = (patient: any) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Patient',
+      message: `Are you sure you want to delete ${patient.name} and all their appointment records?`,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`https://zenora-backend-black.vercel.app/api/patients/${encodeURIComponent(patient.id)}`, { method: 'DELETE' });
+          if (res.ok) {
+            setAppointments(prev => prev.filter(apt => (apt.email || apt.phone || apt.patientName) !== patient.id));
+            showToast('Patient and appointment records deleted.', 'success');
+          } else {
+            const err = await res.json();
+            showToast(err.error, 'error');
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Network error while deleting patient.', 'error');
+        }
+      }
+    });
+  };
+
   const renderSettings = () => (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
@@ -1478,14 +1501,24 @@ const MedicalAppointmentSystem = () => {
                         </td>
                         <td className="px-4 py-3 dark:text-zinc-300">{patient.lastVisit}</td>
                         <td className="px-4 py-3 text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30"
-                            onClick={() => setSelectedPatient(patient)}
-                          >
-                            View
-                          </Button>
+                          <div className="flex justify-end gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                              onClick={() => setSelectedPatient(patient)}
+                            >
+                              View
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-800 hover:bg-red-50 dark:hover:bg-red-900/30"
+                              onClick={() => handleDeletePatient(patient)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))

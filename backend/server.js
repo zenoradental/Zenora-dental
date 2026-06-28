@@ -605,6 +605,24 @@ app.delete('/api/appointments', async (req, res) => {
   }
 });
 
+// DELETE patient and their appointments by identifier (name, email, or phone)
+app.delete('/api/patients/:id', async (req, res) => {
+  try {
+    const id = decodeURIComponent(req.params.id);
+    await Appointment.deleteMany({
+      $or: [
+        { email: id },
+        { phone: id },
+        { patientName: id }
+      ]
+    });
+    res.json({ success: true, message: 'Patient and associated appointments deleted.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete patient' });
+  }
+});
+
 // POST /api/auth/login
 app.post('/api/auth/login', async (req, res) => {
   try {
