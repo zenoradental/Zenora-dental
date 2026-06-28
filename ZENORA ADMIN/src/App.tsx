@@ -23,8 +23,7 @@ import {
   ShieldCheck,
   FileText,
   Trash2,
-  MessageCircle,
-  Star
+  Zap
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -948,43 +947,38 @@ const MedicalAppointmentSystem = () => {
               </TableHeader>
               <TableBody>
                 {filteredAppointments.map((apt) => (
-                  <TableRow key={apt.appointmentId} className="border-zinc-100">
+                  <TableRow key={apt.appointmentId} className={`transition-colors ${apt.service && apt.service.includes('Priority') ? 'bg-amber-50/90 hover:bg-amber-100/90 dark:bg-amber-950/30 border-l-4 border-l-amber-500 shadow-sm' : 'border-zinc-100 hover:bg-zinc-50/50'}`}>
                     <TableCell className="font-medium text-zinc-900">{apt.appointmentId}</TableCell>
                     <TableCell className="font-medium text-zinc-900">
-                      <div className="flex items-center gap-1.5">
-                        {apt.patientName}
+                      <div className="flex items-center gap-2">
+                        <span>{apt.patientName}</span>
                         {apt.service && apt.service.includes('Priority') && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-teal-50 text-teal-700 border border-teal-200" title="Priority Consultation Lead">
-                            <Star className="w-2.5 h-2.5 mr-0.5 fill-teal-500 text-teal-500" />
-                            Priority
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm animate-pulse" title="10-Minute Homepage Priority Callback">
+                            <Zap className="w-3 h-3 fill-white" />
+                            URGENT VIP CALLBACK
                           </span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell className="text-zinc-500">{apt.age || '-'}</TableCell>
                     <TableCell className="text-zinc-500">{apt.gender || '-'}</TableCell>
-                    <TableCell className="text-zinc-500">
-                      <div className="flex items-center gap-1.5">
-                        <span>{apt.phone}</span>
-                        {apt.phone && (
-                          <a
-                            href={`https://wa.me/91${apt.phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Hello ${apt.patientName}, this is a friendly message from Zenora Dental regarding your dental consultation.`)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center p-1 rounded-md bg-green-500 text-white hover:bg-green-600 transition-colors shadow-sm"
-                            title="Chat on WhatsApp"
-                          >
-                            <MessageCircle className="w-3 h-3" />
-                          </a>
-                        )}
-                      </div>
-                    </TableCell>
+                    <TableCell className="text-zinc-500 font-medium text-zinc-900">{apt.phone}</TableCell>
                     <TableCell className="text-zinc-500">{apt.doctor || 'Unassigned'}</TableCell>
                     <TableCell className="text-zinc-500">{apt.appointmentDate}</TableCell>
                     <TableCell className="text-zinc-500">{apt.appointmentTime}</TableCell>
                     <TableCell>{getStatusBadge(apt.status)}</TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
+                      <div className="flex items-center gap-2">
+                        {apt.service && apt.service.includes('Priority') && (
+                          <a
+                            href={`tel:${apt.phone}`}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-md hover:shadow transition-all transform hover:-translate-y-0.5"
+                            title="Initiate Instant Telephone Consultation"
+                          >
+                            <Phone className="w-3.5 h-3.5 fill-white animate-bounce" />
+                            Call Now
+                          </a>
+                        )}
                         <Button
                           size="sm"
                           variant="outline"
