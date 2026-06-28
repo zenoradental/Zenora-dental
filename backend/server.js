@@ -34,9 +34,9 @@ const setupTransporter = async () => {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 10000,
+      connectionTimeout: 3000,
+      greetingTimeout: 3000,
+      socketTimeout: 4000,
       socketOptions: { lookup: ipv4Lookup },
       tls: isResend ? { lookup: ipv4Lookup } : { servername: host, rejectUnauthorized: false, lookup: ipv4Lookup }
     });
@@ -50,9 +50,9 @@ const setupTransporter = async () => {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 10000,
+      connectionTimeout: 3000,
+      greetingTimeout: 3000,
+      socketTimeout: 4000,
       socketOptions: { lookup: ipv4Lookup },
       tls: isResend ? { lookup: ipv4Lookup } : { servername: host, rejectUnauthorized: false, lookup: ipv4Lookup }
     });
@@ -419,44 +419,42 @@ app.post('/api/appointments', async (req, res) => {
     
     await appointmentRecord.save();
     
-    // Send email notification non-fatally
-    try {
-      if ((transporter || fallbackTransporter) && appointmentRecord.email) {
-        const fromAddress = process.env.SMTP_USER === 'resend' 
-          ? 'onboarding@resend.dev' 
-          : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
-          
-        const mailOptions = {
-          from: fromAddress,
-          to: appointmentRecord.email,
-          subject: `Appointment Confirmed - Tracking ID: ${appointmentRecord.appointmentId}`,
-          text: `Appointment Confirmed! Thank you, ${appointmentRecord.patientName}. Your Tracking ID is ${appointmentRecord.appointmentId}. Service: ${appointmentRecord.service || 'General Checkup'}. Date: ${appointmentRecord.appointmentDate}. Time: ${appointmentRecord.appointmentTime}. Please ensure you arrive 10 minutes prior to your scheduled time.`,
-          html: generateEmailHTML(
-            'Appointment Confirmed',
-            appointmentRecord.patientName,
-            [
-              'We are writing to confirm that your appointment request has been successfully received by our administration team. At <strong>Zenora Dental</strong>, your oral health and comfort are our top priorities, and we look forward to providing you with exceptional care.',
-              'Please ensure you arrive 10 minutes prior to your scheduled time. If you have any questions or need to reschedule, please contact our support team.'
-            ],
-            [
-              { label: 'Tracking ID', value: appointmentRecord.appointmentId },
-              { label: 'Date', value: appointmentRecord.appointmentDate },
-              { label: 'Time', value: appointmentRecord.appointmentTime },
-              { label: 'Service', value: appointmentRecord.service || 'General Checkup' }
-            ],
-            { text: 'Check Appointment Status', url: `${process.env.FRONTEND_URL || 'https://zenoradentalofficial.netlify.app'}/check-status.html` },
-            calendarIcon
-          )
-        };
-
-        const info = await sendEmailReliably(mailOptions);
-        if (info) console.log("Email sent: %s", info.messageId);
-      }
-    } catch (emailErr) {
-      console.error("Non-fatal error sending confirmation email:", emailErr.message || emailErr);
-    }
-
+    // Return instant response so the user never waits on email timeouts!
     res.status(201).json({ success: true, appointment: appointmentRecord });
+
+    // Send email notification non-blockingly in the background
+    if ((transporter || fallbackTransporter) && appointmentRecord.email) {
+      const fromAddress = process.env.SMTP_USER === 'resend' 
+        ? 'onboarding@resend.dev' 
+        : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+        
+      const mailOptions = {
+        from: fromAddress,
+        to: appointmentRecord.email,
+        subject: `Appointment Confirmed - Tracking ID: ${appointmentRecord.appointmentId}`,
+        text: `Appointment Confirmed! Thank you, ${appointmentRecord.patientName}. Your Tracking ID is ${appointmentRecord.appointmentId}. Service: ${appointmentRecord.service || 'General Checkup'}. Date: ${appointmentRecord.appointmentDate}. Time: ${appointmentRecord.appointmentTime}. Please ensure you arrive 10 minutes prior to your scheduled time.`,
+        html: generateEmailHTML(
+          'Appointment Confirmed',
+          appointmentRecord.patientName,
+          [
+            'We are writing to confirm that your appointment request has been successfully received by our administration team. At <strong>Zenora Dental</strong>, your oral health and comfort are our top priorities, and we look forward to providing you with exceptional care.',
+            'Please ensure you arrive 10 minutes prior to your scheduled time. If you have any questions or need to reschedule, please contact our support team.'
+          ],
+          [
+            { label: 'Tracking ID', value: appointmentRecord.appointmentId },
+            { label: 'Date', value: appointmentRecord.appointmentDate },
+            { label: 'Time', value: appointmentRecord.appointmentTime },
+            { label: 'Service', value: appointmentRecord.service || 'General Checkup' }
+          ],
+          { text: 'Check Appointment Status', url: `${process.env.FRONTEND_URL || 'https://zenoradentalofficial.netlify.app'}/check-status.html` },
+          calendarIcon
+        )
+      };
+
+      sendEmailReliably(mailOptions)
+        .then(info => { if (info) console.log("Email sent: %s", info.messageId); })
+        .catch(emailErr => console.error("Non-fatal background error sending confirmation email:", emailErr.message || emailErr));
+    }
   } catch (err) {
     console.error("Fatal error saving appointment:", err);
     res.status(500).json({ error: 'Failed to save appointment', details: err.message });
@@ -524,12 +522,9 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
         subject: subject,
         html: htmlBody
       };
-      try {
-        const info = await sendEmailReliably(mailOptions);
-        if (info) console.log("Status email sent:", info.messageId);
-      } catch (err) {
-        console.error("Error sending status email:", err);
-      }
+      sendEmailReliably(mailOptions)
+        .then(info => { if (info) console.log("Status email sent:", info.messageId); })
+        .catch(err => console.error("Error sending status email:", err));
     }
 
     res.json({ success: true, status });
@@ -580,12 +575,9 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
           doctorIcon
         )
       };
-      try {
-        const info = await sendEmailReliably(mailOptions);
-        if (info) console.log("Doctor email sent:", info.messageId);
-      } catch (err) {
-        console.error("Error sending doctor email:", err);
-      }
+      sendEmailReliably(mailOptions)
+        .then(info => { if (info) console.log("Doctor email sent:", info.messageId); })
+        .catch(err => console.error("Error sending doctor email:", err));
     }
 
     res.json({ success: true, doctor });
