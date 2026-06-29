@@ -22,7 +22,8 @@ import {
   EyeOff,
   ShieldCheck,
   FileText,
-  Trash2
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -207,6 +208,7 @@ const MedicalAppointmentSystem = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode] = useState(false);
   const [systemSettings, setSystemSettings] = useState({ maintenanceMode: false, pauseBookings: false });
+  const [togglingSetting, setTogglingSetting] = useState<string | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>(sampleAppointments);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -1279,18 +1281,28 @@ const MedicalAppointmentSystem = () => {
   };
 
   const handleToggleSetting = async (setting: 'maintenanceMode' | 'pauseBookings') => {
+    if (togglingSetting === setting) return;
+    const previousValue = systemSettings[setting];
+    const newValue = !previousValue;
+    
+    // Optimistic UI update for instantaneous professional feedback
+    setSystemSettings(prev => ({ ...prev, [setting]: newValue }));
+    setTogglingSetting(setting);
+
     try {
-      const newValue = !systemSettings[setting];
       const res = await fetch(`https://zenora-backend-black.vercel.app/api/settings`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [setting]: newValue })
       });
-      if (res.ok) {
-        setSystemSettings(prev => ({ ...prev, [setting]: newValue }));
-      }
+      if (!res.ok) throw new Error('Server returned error');
+      showToast(`${setting === 'maintenanceMode' ? 'Maintenance Mode' : 'Online Bookings'} ${newValue ? 'enabled' : 'disabled'} successfully.`, 'success');
     } catch (err) {
       console.error(err);
+      setSystemSettings(prev => ({ ...prev, [setting]: previousValue }));
+      showToast('Failed to update setting. Please try again.', 'error');
+    } finally {
+      setTogglingSetting(null);
     }
   };
 
@@ -1408,18 +1420,36 @@ const MedicalAppointmentSystem = () => {
                   <p className="font-medium text-zinc-900 dark:text-zinc-100">Maintenance Mode</p>
                   <p className="text-xs text-zinc-500">Take the portal offline for standard users.</p>
                 </div>
-                <div onClick={() => handleToggleSetting('maintenanceMode')} className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${systemSettings.maintenanceMode ? 'bg-red-500' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
-                  <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm transition-all ${systemSettings.maintenanceMode ? 'left-6' : 'left-0.5'}`}></div>
-                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={systemSettings.maintenanceMode}
+                  disabled={togglingSetting === 'maintenanceMode'}
+                  onClick={() => handleToggleSetting('maintenanceMode')}
+                  className={`w-12 h-6 rounded-full relative inline-flex items-center p-0.5 cursor-pointer transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 disabled:opacity-60 ${systemSettings.maintenanceMode ? 'bg-rose-600' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                >
+                  <span className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ease-in-out flex items-center justify-center ${systemSettings.maintenanceMode ? 'translate-x-6' : 'translate-x-0'}`}>
+                    {togglingSetting === 'maintenanceMode' && <Loader2 className="w-3 h-3 text-zinc-600 animate-spin" />}
+                  </span>
+                </button>
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-zinc-900 dark:text-zinc-100">Pause Online Bookings</p>
                   <p className="text-xs text-zinc-500">Temporarily stop new appointments from the website.</p>
                 </div>
-                <div onClick={() => handleToggleSetting('pauseBookings')} className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${systemSettings.pauseBookings ? 'bg-red-500' : 'bg-zinc-200 dark:bg-zinc-700'}`}>
-                  <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm transition-all ${systemSettings.pauseBookings ? 'left-6' : 'left-0.5'}`}></div>
-                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={systemSettings.pauseBookings}
+                  disabled={togglingSetting === 'pauseBookings'}
+                  onClick={() => handleToggleSetting('pauseBookings')}
+                  className={`w-12 h-6 rounded-full relative inline-flex items-center p-0.5 cursor-pointer transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:opacity-60 ${systemSettings.pauseBookings ? 'bg-amber-600' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                >
+                  <span className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ease-in-out flex items-center justify-center ${systemSettings.pauseBookings ? 'translate-x-6' : 'translate-x-0'}`}>
+                    {togglingSetting === 'pauseBookings' && <Loader2 className="w-3 h-3 text-zinc-600 animate-spin" />}
+                  </span>
+                </button>
               </div>
             </CardContent>
           </Card>
