@@ -951,8 +951,8 @@ const MedicalAppointmentSystem = () => {
                 <TableRow className="border-zinc-200">
                   <TableHead className="font-bold text-zinc-900">ID</TableHead>
                   <TableHead className="font-bold text-zinc-900">Patient</TableHead>
-                  <TableHead className="font-bold text-zinc-900">Age</TableHead>
-                  <TableHead className="font-bold text-zinc-900">Gender</TableHead>
+                  {statusFilter !== 'priority' && <TableHead className="font-bold text-zinc-900">Age</TableHead>}
+                  {statusFilter !== 'priority' && <TableHead className="font-bold text-zinc-900">Gender</TableHead>}
                   <TableHead className="font-bold text-zinc-900">Phone</TableHead>
                   <TableHead className="font-bold text-zinc-900">Doctor</TableHead>
                   <TableHead className="font-bold text-zinc-900">Date</TableHead>
@@ -975,8 +975,16 @@ const MedicalAppointmentSystem = () => {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-zinc-500">{apt.age || '-'}</TableCell>
-                    <TableCell className="text-zinc-500">{apt.gender || '-'}</TableCell>
+                    {statusFilter !== 'priority' && (
+                      <TableCell className="text-zinc-500">
+                        {(apt.service && apt.service.toLowerCase().includes('priority')) || (Number(apt.age) === 30 && apt.gender === 'Not specified') ? '-' : (apt.age || '-')}
+                      </TableCell>
+                    )}
+                    {statusFilter !== 'priority' && (
+                      <TableCell className="text-zinc-500">
+                        {(apt.service && apt.service.toLowerCase().includes('priority')) || apt.gender === 'Not specified' || apt.gender === 'Not Specified' ? '-' : (apt.gender || '-')}
+                      </TableCell>
+                    )}
                     <TableCell className="text-zinc-500 font-medium text-zinc-900">{apt.phone}</TableCell>
                     <TableCell className="text-zinc-500">{apt.doctor || 'Unassigned'}</TableCell>
                     <TableCell className="text-zinc-500">{apt.appointmentDate}</TableCell>
@@ -2028,11 +2036,15 @@ const MedicalAppointmentSystem = () => {
                 </div>
                 <div>
                   <Label className="text-zinc-500 text-xs font-bold uppercase">Age</Label>
-                  <p className="font-bold text-zinc-900">{selectedAppointment.age} years</p>
+                  <p className="font-bold text-zinc-900">
+                    {(selectedAppointment.service && selectedAppointment.service.toLowerCase().includes('priority')) || (Number(selectedAppointment.age) === 30 && selectedAppointment.gender === 'Not specified') ? 'N/A' : `${selectedAppointment.age || 'N/A'} ${selectedAppointment.age ? 'years' : ''}`}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-zinc-500 text-xs font-bold uppercase">Gender</Label>
-                  <p className="font-bold text-zinc-900">{selectedAppointment.gender}</p>
+                  <p className="font-bold text-zinc-900">
+                    {(selectedAppointment.service && selectedAppointment.service.toLowerCase().includes('priority')) || selectedAppointment.gender === 'Not specified' || selectedAppointment.gender === 'Not Specified' ? 'N/A' : (selectedAppointment.gender || 'N/A')}
+                  </p>
                 </div>
               </div>
 

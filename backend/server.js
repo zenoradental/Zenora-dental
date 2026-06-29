@@ -401,8 +401,8 @@ app.post('/api/appointments', async (req, res) => {
     const appointmentRecord = new Appointment({
       appointmentId: nextAptId,
       patientName: newApt.patientName || newApt.name || 'New Patient',
-      age: newApt.age ? parseInt(newApt.age) : 30,
-      gender: newApt.gender || 'Not specified',
+      age: newApt.age ? parseInt(newApt.age) : null,
+      gender: newApt.gender || '-',
       phone: newApt.phone || '',
       email: newApt.email || '',
       service: newApt.service || 'General Checkup',
