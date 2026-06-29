@@ -384,13 +384,20 @@ app.post('/api/appointments', async (req, res) => {
     }
 
     const newApt = req.body;
+    const isPriority = newApt.service && newApt.service.toLowerCase().includes('priority');
     
-    // Check if slot is booked
-    const isBooked = await Appointment.exists({
-      appointmentDate: newApt.date,
-      appointmentTime: newApt.time,
-      status: { $ne: 'Cancelled' }
-    });
+    const dateVal = newApt.date || newApt.appointmentDate || '';
+    const timeVal = newApt.time || newApt.appointmentTime || '';
+
+    // Check if slot is booked (skip unique check for priority callback requests)
+    let isBooked = false;
+    if (!isPriority && dateVal && timeVal) {
+      isBooked = await Appointment.exists({
+        appointmentDate: dateVal,
+        appointmentTime: timeVal,
+        status: { $ne: 'Cancelled' }
+      });
+    }
 
     if (isBooked) {
       return res.status(400).json({ error: 'This time slot is already booked by another patient. Please choose a different date or time.' });
@@ -406,10 +413,10 @@ app.post('/api/appointments', async (req, res) => {
       phone: newApt.phone || '',
       email: newApt.email || '',
       service: newApt.service || 'General Checkup',
-      symptoms: newApt.notes || 'No notes provided',
+      symptoms: newApt.notes || newApt.symptoms || 'No notes provided',
       doctor: 'Unassigned',
-      appointmentDate: newApt.date || '',
-      appointmentTime: newApt.time || '',
+      appointmentDate: dateVal,
+      appointmentTime: timeVal,
       status: 'Pending',
       address: 'Not provided',
       medicalHistory: newApt.medicalHistory || 'Not provided',
