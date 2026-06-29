@@ -426,7 +426,7 @@ const MedicalAppointmentSystem = () => {
   useEffect(() => {
     const fetchSettingsAndDoctors = async () => {
       try {
-        const res = await fetch(`https://zenora-backend-black.vercel.app/api/settings`);
+        const res = await fetch(`https://zenora-backend-black.vercel.app/api/settings`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setSystemSettings(data);
@@ -436,7 +436,7 @@ const MedicalAppointmentSystem = () => {
       }
 
       try {
-        const res = await fetch(`https://zenora-backend-black.vercel.app/api/doctors`);
+        const res = await fetch(`https://zenora-backend-black.vercel.app/api/doctors`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setDoctors(data);
@@ -1292,10 +1292,13 @@ const MedicalAppointmentSystem = () => {
     try {
       const res = await fetch(`https://zenora-backend-black.vercel.app/api/settings`, {
         method: 'PATCH',
+        cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ [setting]: newValue })
       });
       if (!res.ok) throw new Error('Server returned error');
+      const data = await res.json();
+      if (data.settings) setSystemSettings(data.settings);
       showToast(`${setting === 'maintenanceMode' ? 'Maintenance Mode' : 'Online Bookings'} ${newValue ? 'enabled' : 'disabled'} successfully.`, 'success');
     } catch (err) {
       console.error(err);

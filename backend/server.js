@@ -776,7 +776,7 @@ app.patch('/api/admins/:id/password', async (req, res) => {
 app.get('/api/settings', async (req, res) => {
   try {
     const settings = await Setting.findOne().lean();
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.json(settings || { maintenanceMode: false, pauseBookings: false });
   } catch (err) {
     res.status(500).json({ error: 'Failed to read settings' });
@@ -806,7 +806,7 @@ app.patch('/api/settings', async (req, res) => {
 app.get('/api/doctors', async (req, res) => {
   try {
     const doctors = await Doctor.find().select('-_id -__v').lean();
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.json(doctors);
   } catch (err) {
     res.status(500).json({ error: 'Failed to read doctors' });
