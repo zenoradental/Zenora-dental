@@ -2213,16 +2213,19 @@ const MedicalAppointmentSystem = () => {
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <Label htmlFor="edit-gender">Gender *</Label>
-                      <select
-                        id="edit-gender"
+                      <Select
                         value={editForm.gender?.toLowerCase() || 'other'}
-                        onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                        className="flex h-10 w-full appearance-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-shadow focus-visible:border-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 dark:bg-input/30"
+                        onValueChange={(val) => setEditForm({ ...editForm, gender: val })}
                       >
-                        <option value="male" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Male</option>
-                        <option value="female" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Female</option>
-                        <option value="other" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Other</option>
-                      </select>
+                        <SelectTrigger id="edit-gender" className="h-10 w-full">
+                          <SelectValue placeholder="Select Gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
@@ -2237,37 +2240,43 @@ const MedicalAppointmentSystem = () => {
                     <div className="space-y-2">
                       <Label htmlFor="edit-doctor">Select Doctor *</Label>
                       <div className="relative">
-                        <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                        <select
-                          id="edit-doctor"
+                        <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
+                        <Select
                           value={editForm.doctor || ''}
-                          onChange={(e) => setEditForm({ ...editForm, doctor: e.target.value })}
-                          className="flex h-10 w-full appearance-none rounded-lg border border-input bg-transparent pl-10 pr-3 py-2 text-sm shadow-sm transition-shadow focus-visible:border-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 dark:bg-input/30"
+                          onValueChange={(val) => setEditForm({ ...editForm, doctor: val })}
                         >
-                          <option value="Unassigned" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Unassigned</option>
-                          {doctors.map((doc) => (
-                            <option key={doc.id} value={doc.name} className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">{doc.name} - {doc.specialization}</option>
-                          ))}
-                        </select>
+                          <SelectTrigger id="edit-doctor" className="h-10 w-full pl-10">
+                            <SelectValue placeholder="Select Doctor" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Unassigned">Unassigned</SelectItem>
+                            {doctors.map((doc) => (
+                              <SelectItem key={doc.id} value={doc.name}>{doc.name} - {doc.specialization}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="edit-service">Service Type *</Label>
-                      <select
-                        id="edit-service"
+                      <Select
                         value={editForm.service || 'General Consultation'}
-                        onChange={(e) => setEditForm({ ...editForm, service: e.target.value })}
-                        className="flex h-10 w-full appearance-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-shadow focus-visible:border-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 dark:bg-input/30"
+                        onValueChange={(val) => setEditForm({ ...editForm, service: val })}
                       >
-                        <option value="Dental Checkup & Cleaning" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Dental Checkup & Cleaning</option>
-                        <option value="Teeth Whitening" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Teeth Whitening</option>
-                        <option value="Invisalign & Orthodontics" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Invisalign & Orthodontics</option>
-                        <option value="Dental Implants" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Dental Implants</option>
-                        <option value="Root Canal Treatment" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Root Canal Treatment</option>
-                        <option value="Cosmetic Veneers" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Cosmetic Veneers</option>
-                        <option value="Emergency Care" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Emergency Care</option>
-                        <option value="General Consultation" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">General Consultation</option>
-                      </select>
+                        <SelectTrigger id="edit-service" className="h-10 w-full">
+                          <SelectValue placeholder="Select Service" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Dental Checkup & Cleaning">Dental Checkup & Cleaning</SelectItem>
+                          <SelectItem value="Teeth Whitening">Teeth Whitening</SelectItem>
+                          <SelectItem value="Invisalign & Orthodontics">Invisalign & Orthodontics</SelectItem>
+                          <SelectItem value="Dental Implants">Dental Implants</SelectItem>
+                          <SelectItem value="Root Canal Treatment">Root Canal Treatment</SelectItem>
+                          <SelectItem value="Cosmetic Veneers">Cosmetic Veneers</SelectItem>
+                          <SelectItem value="Emergency Care">Emergency Care</SelectItem>
+                          <SelectItem value="General Consultation">General Consultation</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="edit-date">Appointment Date *</Label>
@@ -2282,22 +2291,25 @@ const MedicalAppointmentSystem = () => {
                     <div className="space-y-2">
                       <Label htmlFor="edit-time">Appointment Time *</Label>
                       <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                        <select
-                          id="edit-time"
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
+                        <Select
                           value={editForm.appointmentTime || '10:00 AM'}
-                          onChange={(e) => setEditForm({ ...editForm, appointmentTime: e.target.value })}
-                          className="flex h-10 w-full appearance-none rounded-lg border border-input bg-transparent pl-10 pr-3 py-2 text-sm shadow-sm transition-shadow focus-visible:border-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 dark:bg-input/30"
+                          onValueChange={(val) => setEditForm({ ...editForm, appointmentTime: val })}
                         >
-                          <option value="09:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">09:00 AM</option>
-                          <option value="10:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">10:00 AM</option>
-                          <option value="11:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">11:00 AM</option>
-                          <option value="12:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">12:00 PM</option>
-                          <option value="02:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">02:00 PM</option>
-                          <option value="03:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">03:00 PM</option>
-                          <option value="04:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">04:00 PM</option>
-                          <option value="05:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">05:00 PM</option>
-                        </select>
+                          <SelectTrigger id="edit-time" className="h-10 w-full pl-10">
+                            <SelectValue placeholder="Select Time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="09:00 AM">09:00 AM</SelectItem>
+                            <SelectItem value="10:00 AM">10:00 AM</SelectItem>
+                            <SelectItem value="11:00 AM">11:00 AM</SelectItem>
+                            <SelectItem value="12:00 PM">12:00 PM</SelectItem>
+                            <SelectItem value="02:00 PM">02:00 PM</SelectItem>
+                            <SelectItem value="03:00 PM">03:00 PM</SelectItem>
+                            <SelectItem value="04:00 PM">04:00 PM</SelectItem>
+                            <SelectItem value="05:00 PM">05:00 PM</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   </div>
