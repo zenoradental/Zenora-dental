@@ -24,12 +24,14 @@ import {
   FileText,
   Trash2,
   Loader2,
-  Edit
+  Edit,
+  Stethoscope
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -2149,121 +2151,199 @@ const MedicalAppointmentSystem = () => {
           </DialogHeader>
           {selectedAppointment && (
             isEditingDetails ? (
-              <div className="space-y-4 pt-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="edit-name" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Patient Name</Label>
-                    <Input
-                      id="edit-name"
-                      value={editForm.patientName || ''}
-                      onChange={(e) => setEditForm({ ...editForm, patientName: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-phone" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Phone Number</Label>
-                    <Input
-                      id="edit-phone"
-                      value={editForm.phone || ''}
-                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-email" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Email Address</Label>
-                    <Input
-                      id="edit-email"
-                      type="email"
-                      value={editForm.email || ''}
-                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-doctor" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Assigned Doctor</Label>
-                    <Input
-                      id="edit-doctor"
-                      value={editForm.doctor || ''}
-                      placeholder="e.g. Dr. Zora"
-                      onChange={(e) => setEditForm({ ...editForm, doctor: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-age" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Age</Label>
-                    <Input
-                      id="edit-age"
-                      type="number"
-                      value={editForm.age || ''}
-                      onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-gender" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Gender</Label>
-                    <Input
-                      id="edit-gender"
-                      value={editForm.gender || ''}
-                      placeholder="Male / Female / Other"
-                      onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-date" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Appointment Date</Label>
-                    <Input
-                      id="edit-date"
-                      type="date"
-                      value={editForm.appointmentDate || ''}
-                      onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="edit-time" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Appointment Time</Label>
-                    <Input
-                      id="edit-time"
-                      value={editForm.appointmentTime || ''}
-                      placeholder="e.g. 10:00 AM"
-                      onChange={(e) => setEditForm({ ...editForm, appointmentTime: e.target.value })}
-                    />
+              <div className="px-2 py-4 space-y-6">
+                {/* Patient Information Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <User className="h-5 w-5 text-[#2563EB]" />
+                    Patient Information
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-name">Full Name *</Label>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="edit-name"
+                          value={editForm.patientName || ''}
+                          onChange={(e) => setEditForm({ ...editForm, patientName: e.target.value })}
+                          className="pl-10 h-10"
+                          placeholder="Enter full name"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-phone">Phone Number *</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="edit-phone"
+                          value={editForm.phone || ''}
+                          onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                          className="pl-10 h-10"
+                          placeholder="Enter phone number"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-email">Email Address *</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="edit-email"
+                          type="email"
+                          value={editForm.email || ''}
+                          onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                          className="pl-10 h-10"
+                          placeholder="Enter email address"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-age">Age *</Label>
+                      <Input
+                        id="edit-age"
+                        type="number"
+                        value={editForm.age || ''}
+                        onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
+                        className="h-10"
+                        placeholder="Enter age"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="edit-gender">Gender *</Label>
+                      <select
+                        id="edit-gender"
+                        value={editForm.gender?.toLowerCase() || 'other'}
+                        onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                        className="flex h-10 w-full appearance-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-shadow focus-visible:border-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 dark:bg-input/30"
+                      >
+                        <option value="male" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Male</option>
+                        <option value="female" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Female</option>
+                        <option value="other" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Other</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="edit-service" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Service Required</Label>
-                  <Input
-                    id="edit-service"
-                    value={editForm.service || ''}
-                    onChange={(e) => setEditForm({ ...editForm, service: e.target.value })}
-                  />
+                {/* Appointment Details Section */}
+                <div className="space-y-4 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 pt-2">
+                    <Calendar className="h-5 w-5 text-[#2563EB]" />
+                    Appointment Details
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-doctor">Select Doctor *</Label>
+                      <div className="relative">
+                        <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                        <select
+                          id="edit-doctor"
+                          value={editForm.doctor || ''}
+                          onChange={(e) => setEditForm({ ...editForm, doctor: e.target.value })}
+                          className="flex h-10 w-full appearance-none rounded-lg border border-input bg-transparent pl-10 pr-3 py-2 text-sm shadow-sm transition-shadow focus-visible:border-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 dark:bg-input/30"
+                        >
+                          <option value="Unassigned" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Unassigned</option>
+                          {doctors.map((doc) => (
+                            <option key={doc.id} value={doc.name} className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">{doc.name} - {doc.specialization}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-service">Service Type *</Label>
+                      <select
+                        id="edit-service"
+                        value={editForm.service || 'General Consultation'}
+                        onChange={(e) => setEditForm({ ...editForm, service: e.target.value })}
+                        className="flex h-10 w-full appearance-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-shadow focus-visible:border-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 dark:bg-input/30"
+                      >
+                        <option value="Dental Checkup & Cleaning" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Dental Checkup & Cleaning</option>
+                        <option value="Teeth Whitening" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Teeth Whitening</option>
+                        <option value="Invisalign & Orthodontics" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Invisalign & Orthodontics</option>
+                        <option value="Dental Implants" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Dental Implants</option>
+                        <option value="Root Canal Treatment" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Root Canal Treatment</option>
+                        <option value="Cosmetic Veneers" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Cosmetic Veneers</option>
+                        <option value="Emergency Care" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">Emergency Care</option>
+                        <option value="General Consultation" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">General Consultation</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-date">Appointment Date *</Label>
+                      <Input
+                        id="edit-date"
+                        type="date"
+                        value={editForm.appointmentDate || ''}
+                        onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })}
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-time">Appointment Time *</Label>
+                      <div className="relative">
+                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                        <select
+                          id="edit-time"
+                          value={editForm.appointmentTime || '10:00 AM'}
+                          onChange={(e) => setEditForm({ ...editForm, appointmentTime: e.target.value })}
+                          className="flex h-10 w-full appearance-none rounded-lg border border-input bg-transparent pl-10 pr-3 py-2 text-sm shadow-sm transition-shadow focus-visible:border-[#2563EB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 dark:bg-input/30"
+                        >
+                          <option value="09:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">09:00 AM</option>
+                          <option value="10:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">10:00 AM</option>
+                          <option value="11:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">11:00 AM</option>
+                          <option value="02:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">02:00 PM</option>
+                          <option value="03:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">03:00 PM</option>
+                          <option value="04:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">04:00 PM</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="edit-symptoms" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Symptoms / Notes</Label>
-                  <Input
-                    id="edit-symptoms"
-                    value={editForm.symptoms || ''}
-                    onChange={(e) => setEditForm({ ...editForm, symptoms: e.target.value })}
-                  />
+                {/* Medical Information Section */}
+                <div className="space-y-4 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                  <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 pt-2">
+                    <FileText className="h-5 w-5 text-[#2563EB]" />
+                    Medical Information
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-symptoms">Symptoms / Reason for Visit *</Label>
+                      <Textarea
+                        id="edit-symptoms"
+                        value={editForm.symptoms || ''}
+                        onChange={(e) => setEditForm({ ...editForm, symptoms: e.target.value })}
+                        placeholder="Describe symptoms or reason for appointment"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="edit-history">Medical History</Label>
+                      <Textarea
+                        id="edit-history"
+                        value={editForm.medicalHistory || ''}
+                        onChange={(e) => setEditForm({ ...editForm, medicalHistory: e.target.value })}
+                        placeholder="Previous conditions, allergies, medications, etc."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="edit-history" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Medical History</Label>
-                  <Input
-                    id="edit-history"
-                    value={editForm.medicalHistory || ''}
-                    onChange={(e) => setEditForm({ ...editForm, medicalHistory: e.target.value })}
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                  <Button
-                    onClick={handleUpdateAppointmentDetails}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold text-white shadow-md"
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </Button>
+                {/* Footer */}
+                <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                   <Button
                     variant="outline"
                     onClick={() => setIsEditingDetails(false)}
-                    className="flex-1 font-bold"
+                    className="px-6 h-10 font-medium"
                   >
                     Cancel
+                  </Button>
+                  <Button
+                    onClick={handleUpdateAppointmentDetails}
+                    className="px-6 h-10 bg-[#2563EB] hover:bg-[#2563EB]/90 font-medium text-white shadow-sm"
+                  >
+                    Save Changes
                   </Button>
                 </div>
               </div>
