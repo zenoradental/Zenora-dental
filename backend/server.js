@@ -635,14 +635,54 @@ app.put('/api/appointments/:id', async (req, res) => {
     if (address !== undefined) updateFields.address = address;
     if (medicalHistory !== undefined) updateFields.medicalHistory = medicalHistory;
 
+    const existingApt = await Appointment.findOne({ appointmentId: req.params.id });
+    if (!existingApt) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    const dateChanged = appointmentDate !== undefined && appointmentDate !== existingApt.appointmentDate;
+    const timeChanged = appointmentTime !== undefined && appointmentTime !== existingApt.appointmentTime;
+    const doctorChanged = doctor !== undefined && doctor !== existingApt.doctor;
+
     const updatedApt = await Appointment.findOneAndUpdate(
       { appointmentId: req.params.id },
       { $set: updateFields },
       { new: true }
     );
 
-    if (!updatedApt) {
-      return res.status(404).json({ error: 'Appointment not found' });
+    // Send email notification if date, time, or doctor was updated
+    if ((dateChanged || timeChanged || doctorChanged) && (transporter || fallbackTransporter) && updatedApt.email) {
+      const fromAddress = process.env.SMTP_USER === 'resend' 
+        ? 'onboarding@resend.dev' 
+        : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+        
+      const mailOptions = {
+        from: fromAddress,
+        to: updatedApt.email,
+        subject: `Appointment Details Updated - Zenora Dental`,
+        html: generateEmailHTML(
+          'Appointment Details Updated',
+          updatedApt.patientName,
+          [
+            'We have updated the details of your upcoming appointment. Please review your new appointment details below:',
+            'If you have any questions or need to make further changes, please contact us.'
+          ],
+          [
+            { label: 'Date', value: updatedApt.appointmentDate },
+            { label: 'Time', value: updatedApt.appointmentTime },
+            ...(updatedApt.doctor && updatedApt.doctor !== 'Unassigned' ? [{ label: 'Doctor', value: updatedApt.doctor }] : [])
+          ],
+          null,
+          clockIcon
+        )
+      };
+      
+      try {
+        const info = await sendEmailReliably(mailOptions);
+        if (info) console.log("Update email sent:", info.messageId);
+      } catch (err) {
+        console.error("Error sending update email:", err);
+      }
     }
 
     res.json({ success: true, appointment: updatedApt });
