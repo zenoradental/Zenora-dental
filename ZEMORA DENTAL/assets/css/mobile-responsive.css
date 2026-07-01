@@ -601,3 +601,52 @@
 
 
 
+/* =========================================
+   MOBILE IMAGE CROPPING & ORIENTATION FIXES
+   ========================================= */
+@media screen and (max-width: 991px) {
+    /* Prevent doctor/team member heads from being cut off */
+    .team_image,
+    .testimonial-author_image,
+    .blog-author_image {
+        object-fit: cover !important;
+        object-position: center top !important;
+    }
+
+    /* Hero & Carousel images - position focus point slightly higher to prevent cropping faces/subjects */
+    .hero-carousel-img,
+    .home-hero_image,
+    .about-hero_image,
+    .service-details_image {
+        object-fit: cover !important;
+        object-position: center 25% !important;
+    }
+
+    /* Ensure image wrappers scale nicely without chopping image content */
+    .blog-item_image-wrap,
+    .our-story_item-image_wrap,
+    .home-value_image-wrap,
+    .feature-blog_image-wrap {
+        position: relative !important;
+        height: auto !important;
+        min-height: 220px !important;
+        max-height: 380px !important;
+        overflow: hidden !important;
+    }
+
+    .blog-item_image,
+    .our-story_item-image,
+    .home-value_image,
+    .feature-blog_image {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center center !important;
+    }
+
+    /* Allow flexible card heights so images do not compress or slice awkwardly */
+    .blog_item {
+        height: auto !important;
+        min-height: 360px !important;
+    }
+}

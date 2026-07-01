@@ -23,7 +23,8 @@ import {
   ShieldCheck,
   FileText,
   Trash2,
-  Loader2
+  Loader2,
+  Edit
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -216,6 +217,8 @@ const MedicalAppointmentSystem = () => {
   const [sortBy, setSortBy] = useState<string>('newest');
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [editForm, setEditForm] = useState<any>({});
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -636,6 +639,37 @@ const MedicalAppointmentSystem = () => {
     }
   };
 
+  const handleUpdateAppointmentDetails = async () => {
+    if (!selectedAppointment) return;
+    isUpdatingRef.current = true;
+    lastOptimisticUpdateRef.current = Date.now();
+
+    const updatedApt = { ...selectedAppointment, ...editForm };
+    setAppointments(prev => prev.map(apt => 
+      apt.appointmentId === selectedAppointment.appointmentId ? updatedApt : apt
+    ));
+    setSelectedAppointment(updatedApt);
+    setIsEditingDetails(false);
+
+    try {
+      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      });
+      if (response.ok) {
+        showToast('Appointment details updated successfully.', 'success');
+      } else {
+        showToast('Failed to update appointment details on server.', 'error');
+      }
+    } catch (err) {
+      console.error('Error updating appointment details:', err);
+      showToast('Error updating appointment details.', 'error');
+    } finally {
+      isUpdatingRef.current = false;
+    }
+  };
+
   const handleClearAppointments = async () => {
     setConfirmDialog({
       isOpen: true,
@@ -1008,12 +1042,28 @@ const MedicalAppointmentSystem = () => {
                           size="sm"
                           variant="outline"
                           className="rounded-lg border-zinc-200 text-zinc-600 hover:text-zinc-900"
+                          title="View Details"
                           onClick={() => {
                             setSelectedAppointment(apt);
+                            setIsEditingDetails(false);
                             setShowDetails(true);
                           }}
                         >
                           <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="rounded-lg border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-800 dark:hover:bg-blue-950/30"
+                          title="Edit Appointment & Patient Details"
+                          onClick={() => {
+                            setSelectedAppointment(apt);
+                            setEditForm({ ...apt });
+                            setIsEditingDetails(true);
+                            setShowDetails(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
                         </Button>
                         {apt.status === 'Pending' && (
                           <Button
@@ -2050,113 +2100,264 @@ const MedicalAppointmentSystem = () => {
         </main>
       </div>
 
-      {/* Patient Details Dialog */}
-      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+      {/* Patient Details / Edit Dialog */}
+      <Dialog open={showDetails} onOpenChange={(val) => {
+        setShowDetails(val);
+        if (!val) setIsEditingDetails(false);
+      }}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Patient Details</DialogTitle>
+          <DialogHeader className="flex flex-row items-center justify-between pr-6">
+            <DialogTitle>{isEditingDetails ? 'Edit Appointment Details' : 'Patient Details'}</DialogTitle>
+            {selectedAppointment && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (!isEditingDetails) {
+                    setEditForm({ ...selectedAppointment });
+                  }
+                  setIsEditingDetails(!isEditingDetails);
+                }}
+                className="gap-1.5 text-xs font-bold"
+              >
+                <Edit className="h-3.5 w-3.5" />
+                {isEditingDetails ? 'Cancel Edit' : 'Edit Information'}
+              </Button>
+            )}
           </DialogHeader>
           {selectedAppointment && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-zinc-500 text-xs font-bold uppercase">Patient Name</Label>
-                  <p className="font-bold text-zinc-900">{selectedAppointment.patientName}</p>
+            isEditingDetails ? (
+              <div className="space-y-4 pt-2">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="edit-name" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Patient Name</Label>
+                    <Input
+                      id="edit-name"
+                      value={editForm.patientName || ''}
+                      onChange={(e) => setEditForm({ ...editForm, patientName: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-phone" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Phone Number</Label>
+                    <Input
+                      id="edit-phone"
+                      value={editForm.phone || ''}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-email" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Email Address</Label>
+                    <Input
+                      id="edit-email"
+                      type="email"
+                      value={editForm.email || ''}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-doctor" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Assigned Doctor</Label>
+                    <Input
+                      id="edit-doctor"
+                      value={editForm.doctor || ''}
+                      placeholder="e.g. Dr. Zora"
+                      onChange={(e) => setEditForm({ ...editForm, doctor: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-age" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Age</Label>
+                    <Input
+                      id="edit-age"
+                      type="number"
+                      value={editForm.age || ''}
+                      onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-gender" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Gender</Label>
+                    <Input
+                      id="edit-gender"
+                      value={editForm.gender || ''}
+                      placeholder="Male / Female / Other"
+                      onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-date" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Appointment Date</Label>
+                    <Input
+                      id="edit-date"
+                      type="date"
+                      value={editForm.appointmentDate || ''}
+                      onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-time" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Appointment Time</Label>
+                    <Input
+                      id="edit-time"
+                      value={editForm.appointmentTime || ''}
+                      placeholder="e.g. 10:00 AM"
+                      onChange={(e) => setEditForm({ ...editForm, appointmentTime: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label className="text-zinc-500 text-xs font-bold uppercase">Appointment ID</Label>
-                  <p className="font-bold text-zinc-900">{selectedAppointment.appointmentId}</p>
-                </div>
-                <div>
-                  <Label className="text-zinc-500 text-xs font-bold uppercase">Age</Label>
-                  <p className="font-bold text-zinc-900">
-                    {(selectedAppointment.service && selectedAppointment.service.toLowerCase().includes('priority')) || (Number(selectedAppointment.age) === 30 && selectedAppointment.gender === 'Not specified') ? 'N/A' : `${selectedAppointment.age || 'N/A'} ${selectedAppointment.age ? 'years' : ''}`}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-zinc-500 text-xs font-bold uppercase">Gender</Label>
-                  <p className="font-bold text-zinc-900">
-                    {(selectedAppointment.service && selectedAppointment.service.toLowerCase().includes('priority')) || selectedAppointment.gender === 'Not specified' || selectedAppointment.gender === 'Not Specified' ? 'N/A' : (selectedAppointment.gender || 'N/A')}
-                  </p>
-                </div>
-              </div>
 
-              <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-zinc-100">
-                <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-zinc-400" />
-                  <span className="text-sm font-medium">{selectedAppointment.phone}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-zinc-400" />
-                  <span className="text-sm font-medium">{selectedAppointment.email}</span>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-zinc-500 text-xs font-bold uppercase">Symptoms</Label>
-                <p className="mt-1 text-sm">{selectedAppointment.symptoms}</p>
-              </div>
-
-              <div>
-                <Label className="text-zinc-500 text-xs font-bold uppercase">Medical History</Label>
-                <p className="mt-1 text-sm">{selectedAppointment.medicalHistory}</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg border border-zinc-100">
                 <div>
-                  <Label className="text-zinc-500 text-xs font-bold uppercase">Status</Label>
-                  <div className="mt-1">{getStatusBadge(selectedAppointment.status)}</div>
+                  <Label htmlFor="edit-service" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Service Required</Label>
+                  <Input
+                    id="edit-service"
+                    value={editForm.service || ''}
+                    onChange={(e) => setEditForm({ ...editForm, service: e.target.value })}
+                  />
                 </div>
-                <div>
-                  <Label className="text-zinc-500 text-xs font-bold uppercase">Date</Label>
-                  <p className="font-bold mt-1 text-zinc-900">{selectedAppointment.appointmentDate}</p>
-                </div>
-                <div>
-                  <Label className="text-zinc-500 text-xs font-bold uppercase">Time</Label>
-                  <p className="font-bold mt-1 text-zinc-900">{selectedAppointment.appointmentTime}</p>
-                </div>
-              </div>
 
-              <div className="flex gap-3 pt-4">
-                {selectedAppointment.status === 'Pending' && (
+                <div>
+                  <Label htmlFor="edit-symptoms" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Symptoms / Notes</Label>
+                  <Input
+                    id="edit-symptoms"
+                    value={editForm.symptoms || ''}
+                    onChange={(e) => setEditForm({ ...editForm, symptoms: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-history" className="text-zinc-500 text-xs font-bold uppercase mb-1 block">Medical History</Label>
+                  <Input
+                    id="edit-history"
+                    value={editForm.medicalHistory || ''}
+                    onChange={(e) => setEditForm({ ...editForm, medicalHistory: e.target.value })}
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                   <Button
-                    onClick={() => {
-                      handleStatusChange(selectedAppointment.appointmentId, 'Confirmed');
-                      setShowDetails(false);
-                    }}
-                    className="flex-1 bg-zinc-900 hover:bg-zinc-800 font-bold text-white"
+                    onClick={handleUpdateAppointmentDetails}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 font-bold text-white shadow-md"
                   >
                     <Check className="h-4 w-4 mr-2" />
-                    Approve
+                    Save Changes
                   </Button>
-                )}
-                {selectedAppointment.status === 'Confirmed' && (
-                  <Button
-                    onClick={() => {
-                      handleStatusChange(selectedAppointment.appointmentId, 'Completed');
-                      setShowDetails(false);
-                    }}
-                    className="flex-1 bg-green-600 hover:bg-green-700 font-bold text-white"
-                  >
-                    <Check className="h-4 w-4 mr-2" />
-                    Mark Complete
-                  </Button>
-                )}
-                {selectedAppointment.status !== 'Cancelled' && selectedAppointment.status !== 'Completed' && (
                   <Button
                     variant="outline"
-                    onClick={() => {
-                      handleStatusChange(selectedAppointment.appointmentId, 'Cancelled');
-                      setShowDetails(false);
-                    }}
-                    className="flex-1 border-red-200 text-red-600 hover:bg-red-50 font-bold"
+                    onClick={() => setIsEditingDetails(false)}
+                    className="flex-1 font-bold"
                   >
-                    <XCircle className="h-4 w-4 mr-2" />
                     Cancel
                   </Button>
-                )}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-zinc-500 text-xs font-bold uppercase">Patient Name</Label>
+                    <p className="font-bold text-zinc-900">{selectedAppointment.patientName}</p>
+                  </div>
+                  <div>
+                    <Label className="text-zinc-500 text-xs font-bold uppercase">Appointment ID</Label>
+                    <p className="font-bold text-zinc-900">{selectedAppointment.appointmentId}</p>
+                  </div>
+                  <div>
+                    <Label className="text-zinc-500 text-xs font-bold uppercase">Age</Label>
+                    <p className="font-bold text-zinc-900">
+                      {(selectedAppointment.service && selectedAppointment.service.toLowerCase().includes('priority')) || (Number(selectedAppointment.age) === 30 && selectedAppointment.gender === 'Not specified') ? 'N/A' : `${selectedAppointment.age || 'N/A'} ${selectedAppointment.age ? 'years' : ''}`}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="text-zinc-500 text-xs font-bold uppercase">Gender</Label>
+                    <p className="font-bold text-zinc-900">
+                      {(selectedAppointment.service && selectedAppointment.service.toLowerCase().includes('priority')) || selectedAppointment.gender === 'Not specified' || selectedAppointment.gender === 'Not Specified' ? 'N/A' : (selectedAppointment.gender || 'N/A')}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-zinc-100">
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-4 w-4 text-zinc-400" />
+                    <span className="text-sm font-medium">{selectedAppointment.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-4 w-4 text-zinc-400" />
+                    <span className="text-sm font-medium">{selectedAppointment.email}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-zinc-500 text-xs font-bold uppercase">Symptoms</Label>
+                  <p className="mt-1 text-sm">{selectedAppointment.symptoms}</p>
+                </div>
+
+                <div>
+                  <Label className="text-zinc-500 text-xs font-bold uppercase">Medical History</Label>
+                  <p className="mt-1 text-sm">{selectedAppointment.medicalHistory}</p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 p-4 bg-slate-50 rounded-lg border border-zinc-100">
+                  <div>
+                    <Label className="text-zinc-500 text-xs font-bold uppercase">Status</Label>
+                    <div className="mt-1">{getStatusBadge(selectedAppointment.status)}</div>
+                  </div>
+                  <div>
+                    <Label className="text-zinc-500 text-xs font-bold uppercase">Date</Label>
+                    <p className="font-bold mt-1 text-zinc-900">{selectedAppointment.appointmentDate}</p>
+                  </div>
+                  <div>
+                    <Label className="text-zinc-500 text-xs font-bold uppercase">Time</Label>
+                    <p className="font-bold mt-1 text-zinc-900">{selectedAppointment.appointmentTime}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    onClick={() => {
+                      setEditForm({ ...selectedAppointment });
+                      setIsEditingDetails(true);
+                    }}
+                    variant="outline"
+                    className="flex-1 border-blue-200 text-blue-600 hover:bg-blue-50 font-bold"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Details
+                  </Button>
+                  {selectedAppointment.status === 'Pending' && (
+                    <Button
+                      onClick={() => {
+                        handleStatusChange(selectedAppointment.appointmentId, 'Confirmed');
+                        setShowDetails(false);
+                      }}
+                      className="flex-1 bg-zinc-900 hover:bg-zinc-800 font-bold text-white"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Approve
+                    </Button>
+                  )}
+                  {selectedAppointment.status === 'Confirmed' && (
+                    <Button
+                      onClick={() => {
+                        handleStatusChange(selectedAppointment.appointmentId, 'Completed');
+                        setShowDetails(false);
+                      }}
+                      className="flex-1 bg-green-600 hover:bg-green-700 font-bold text-white"
+                    >
+                      <Check className="h-4 w-4 mr-2" />
+                      Mark Complete
+                    </Button>
+                  )}
+                  {selectedAppointment.status !== 'Cancelled' && selectedAppointment.status !== 'Completed' && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        handleStatusChange(selectedAppointment.appointmentId, 'Cancelled');
+                        setShowDetails(false);
+                      }}
+                      className="flex-1 border-red-200 text-red-600 hover:bg-red-50 font-bold"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )
           )}
         </DialogContent>
       </Dialog>

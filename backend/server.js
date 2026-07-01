@@ -601,6 +601,57 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
   }
 });
 
+// PUT full edit appointment & patient details
+app.put('/api/appointments/:id', async (req, res) => {
+  try {
+    const {
+      patientName,
+      age,
+      gender,
+      phone,
+      email,
+      service,
+      symptoms,
+      doctor,
+      appointmentDate,
+      appointmentTime,
+      status,
+      address,
+      medicalHistory
+    } = req.body;
+
+    const updateFields = {};
+    if (patientName !== undefined) updateFields.patientName = patientName;
+    if (age !== undefined) updateFields.age = age;
+    if (gender !== undefined) updateFields.gender = gender;
+    if (phone !== undefined) updateFields.phone = phone;
+    if (email !== undefined) updateFields.email = email;
+    if (service !== undefined) updateFields.service = service;
+    if (symptoms !== undefined) updateFields.symptoms = symptoms;
+    if (doctor !== undefined) updateFields.doctor = doctor;
+    if (appointmentDate !== undefined) updateFields.appointmentDate = appointmentDate;
+    if (appointmentTime !== undefined) updateFields.appointmentTime = appointmentTime;
+    if (status !== undefined) updateFields.status = status;
+    if (address !== undefined) updateFields.address = address;
+    if (medicalHistory !== undefined) updateFields.medicalHistory = medicalHistory;
+
+    const updatedApt = await Appointment.findOneAndUpdate(
+      { appointmentId: req.params.id },
+      { $set: updateFields },
+      { new: true }
+    );
+
+    if (!updatedApt) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    res.json({ success: true, appointment: updatedApt });
+  } catch (err) {
+    console.error("Error editing appointment:", err);
+    res.status(500).json({ error: 'Failed to update appointment details' });
+  }
+});
+
 // DELETE single appointment by ID
 app.delete('/api/appointments/:id', async (req, res) => {
   try {
