@@ -2129,7 +2129,7 @@ const MedicalAppointmentSystem = () => {
         setShowDetails(val);
         if (!val) setIsEditingDetails(false);
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="flex flex-row items-center justify-between pr-6">
             <DialogTitle>{isEditingDetails ? 'Edit Appointment Details' : 'Patient Details'}</DialogTitle>
             {selectedAppointment && (
