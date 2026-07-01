@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+console.log("CACHE BUSTER 1");
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isToday } from 'date-fns';
 import customLogo from './assets/favicon.svg';
 import { 
@@ -2291,9 +2292,11 @@ const MedicalAppointmentSystem = () => {
                           <option value="09:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">09:00 AM</option>
                           <option value="10:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">10:00 AM</option>
                           <option value="11:00 AM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">11:00 AM</option>
+                          <option value="12:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">12:00 PM</option>
                           <option value="02:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">02:00 PM</option>
                           <option value="03:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">03:00 PM</option>
                           <option value="04:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">04:00 PM</option>
+                          <option value="05:00 PM" className="text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">05:00 PM</option>
                         </select>
                       </div>
                     </div>
