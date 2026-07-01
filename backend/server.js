@@ -1,4 +1,4 @@
-// Build deploy trigger v2026.06.28
+// Build deploy trigger v2026.07.01 - Add PUT appointment endpoint
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const dns = require('dns');
 try { dns.setDefaultResultOrder('ipv4first'); } catch (e) {}
