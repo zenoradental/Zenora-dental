@@ -2213,19 +2213,23 @@ const MedicalAppointmentSystem = () => {
                     </div>
                     <div className="space-y-2 md:col-span-2">
                       <Label htmlFor="edit-gender">Gender *</Label>
-                      <Select
-                        value={editForm.gender?.toLowerCase() || 'other'}
-                        onValueChange={(val) => setEditForm({ ...editForm, gender: val })}
-                      >
-                        <SelectTrigger id="edit-gender" className="h-10 w-full">
-                          <SelectValue placeholder="Select Gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex gap-2">
+                        {['Male', 'Female', 'Other'].map(gender => (
+                          <button
+                            key={gender}
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm, gender: gender.toLowerCase() })}
+                            className={cn(
+                              "flex-1 px-3 py-2 text-sm rounded-lg border transition-all text-center",
+                              (editForm.gender?.toLowerCase() || 'other') === gender.toLowerCase()
+                                ? "border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB] font-medium ring-1 ring-[#2563EB]"
+                                : "border-input bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
+                            )}
+                          >
+                            {gender}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2239,44 +2243,66 @@ const MedicalAppointmentSystem = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="edit-doctor">Select Doctor *</Label>
-                      <div className="relative">
-                        <Stethoscope className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
-                        <Select
-                          value={editForm.doctor || ''}
-                          onValueChange={(val) => setEditForm({ ...editForm, doctor: val })}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditForm({ ...editForm, doctor: 'Unassigned' })}
+                          className={cn(
+                            "px-3 py-2 text-sm rounded-lg border transition-all text-left flex items-center gap-2",
+                            (!editForm.doctor || editForm.doctor === 'Unassigned')
+                              ? "border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB] font-medium ring-1 ring-[#2563EB]"
+                              : "border-input bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
+                          )}
                         >
-                          <SelectTrigger id="edit-doctor" className="h-10 w-full pl-10">
-                            <SelectValue placeholder="Select Doctor" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Unassigned">Unassigned</SelectItem>
-                            {doctors.map((doc) => (
-                              <SelectItem key={doc.id} value={doc.name}>{doc.name} - {doc.specialization}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          <Stethoscope className={cn("h-4 w-4", (!editForm.doctor || editForm.doctor === 'Unassigned') ? "text-[#2563EB]" : "text-muted-foreground")} />
+                          Unassigned
+                        </button>
+                        {doctors.map(doc => (
+                          <button
+                            key={doc.id}
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm, doctor: doc.name })}
+                            className={cn(
+                              "px-3 py-2 text-sm rounded-lg border transition-all text-left flex items-center gap-2",
+                              editForm.doctor === doc.name
+                                ? "border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB] font-medium ring-1 ring-[#2563EB]"
+                                : "border-input bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
+                            )}
+                          >
+                            <Stethoscope className={cn("h-4 w-4 flex-shrink-0", editForm.doctor === doc.name ? "text-[#2563EB]" : "text-muted-foreground")} />
+                            <span className="truncate">{doc.name} - {doc.specialization}</span>
+                          </button>
+                        ))}
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="edit-service">Service Type *</Label>
-                      <Select
-                        value={editForm.service || 'General Consultation'}
-                        onValueChange={(val) => setEditForm({ ...editForm, service: val })}
-                      >
-                        <SelectTrigger id="edit-service" className="h-10 w-full">
-                          <SelectValue placeholder="Select Service" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Dental Checkup & Cleaning">Dental Checkup & Cleaning</SelectItem>
-                          <SelectItem value="Teeth Whitening">Teeth Whitening</SelectItem>
-                          <SelectItem value="Invisalign & Orthodontics">Invisalign & Orthodontics</SelectItem>
-                          <SelectItem value="Dental Implants">Dental Implants</SelectItem>
-                          <SelectItem value="Root Canal Treatment">Root Canal Treatment</SelectItem>
-                          <SelectItem value="Cosmetic Veneers">Cosmetic Veneers</SelectItem>
-                          <SelectItem value="Emergency Care">Emergency Care</SelectItem>
-                          <SelectItem value="General Consultation">General Consultation</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {[
+                          'Dental Checkup & Cleaning',
+                          'Teeth Whitening',
+                          'Invisalign & Orthodontics',
+                          'Dental Implants',
+                          'Root Canal Treatment',
+                          'Cosmetic Veneers',
+                          'Emergency Care',
+                          'General Consultation'
+                        ].map(service => (
+                          <button
+                            key={service}
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm, service: service })}
+                            className={cn(
+                              "px-3 py-2 text-sm rounded-lg border transition-all text-left truncate",
+                              (editForm.service || 'General Consultation') === service
+                                ? "border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB] font-medium ring-1 ring-[#2563EB]"
+                                : "border-input bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
+                            )}
+                          >
+                            {service}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="edit-date">Appointment Date *</Label>
@@ -2290,26 +2316,26 @@ const MedicalAppointmentSystem = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="edit-time">Appointment Time *</Label>
-                      <div className="relative">
-                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
-                        <Select
-                          value={editForm.appointmentTime || '10:00 AM'}
-                          onValueChange={(val) => setEditForm({ ...editForm, appointmentTime: val })}
-                        >
-                          <SelectTrigger id="edit-time" className="h-10 w-full pl-10">
-                            <SelectValue placeholder="Select Time" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="09:00 AM">09:00 AM</SelectItem>
-                            <SelectItem value="10:00 AM">10:00 AM</SelectItem>
-                            <SelectItem value="11:00 AM">11:00 AM</SelectItem>
-                            <SelectItem value="12:00 PM">12:00 PM</SelectItem>
-                            <SelectItem value="02:00 PM">02:00 PM</SelectItem>
-                            <SelectItem value="03:00 PM">03:00 PM</SelectItem>
-                            <SelectItem value="04:00 PM">04:00 PM</SelectItem>
-                            <SelectItem value="05:00 PM">05:00 PM</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+                          '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'
+                        ].map(time => (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm, appointmentTime: time })}
+                            className={cn(
+                              "px-3 py-2 text-sm rounded-lg border transition-all text-center flex items-center justify-center gap-1.5",
+                              (editForm.appointmentTime || '10:00 AM') === time
+                                ? "border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB] font-medium ring-1 ring-[#2563EB]"
+                                : "border-input bg-transparent hover:border-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 dark:hover:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+                            )}
+                          >
+                            <Clock className={cn("h-3.5 w-3.5", (editForm.appointmentTime || '10:00 AM') === time ? "text-[#2563EB]" : "text-muted-foreground")} />
+                            {time}
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
