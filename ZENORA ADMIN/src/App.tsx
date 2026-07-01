@@ -2279,14 +2279,12 @@ const MedicalAppointmentSystem = () => {
                       <Label htmlFor="edit-service">Service Type *</Label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         {[
-                          'Dental Checkup & Cleaning',
+                          'General Checkup',
+                          'Teeth Cleaning',
                           'Teeth Whitening',
-                          'Invisalign & Orthodontics',
+                          'Root Canal',
                           'Dental Implants',
-                          'Root Canal Treatment',
-                          'Cosmetic Veneers',
-                          'Emergency Care',
-                          'General Consultation'
+                          'Orthodontics'
                         ].map(service => (
                           <button
                             key={service}
@@ -2294,7 +2292,7 @@ const MedicalAppointmentSystem = () => {
                             onClick={() => setEditForm({ ...editForm, service: service })}
                             className={cn(
                               "px-3 py-2 text-sm rounded-lg border transition-all text-left truncate",
-                              (editForm.service || 'General Consultation') === service
+                              (editForm.service || 'General Checkup') === service
                                 ? "border-[#2563EB] bg-[#2563EB]/5 text-[#2563EB] font-medium ring-1 ring-[#2563EB]"
                                 : "border-input bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                             )}
