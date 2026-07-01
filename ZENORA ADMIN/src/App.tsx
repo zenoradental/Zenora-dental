@@ -2240,10 +2240,10 @@ const MedicalAppointmentSystem = () => {
                     <Calendar className="h-5 w-5 text-[#2563EB]" />
                     Appointment Details
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="edit-doctor">Select Doctor *</Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         <button
                           type="button"
                           onClick={() => setEditForm({ ...editForm, doctor: 'Unassigned' })}
@@ -2275,9 +2275,9 @@ const MedicalAppointmentSystem = () => {
                         ))}
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="edit-service">Service Type *</Label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         {[
                           'Dental Checkup & Cleaning',
                           'Teeth Whitening',
@@ -2304,19 +2304,19 @@ const MedicalAppointmentSystem = () => {
                         ))}
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="edit-date">Appointment Date *</Label>
                       <Input
                         id="edit-date"
                         type="date"
                         value={editForm.appointmentDate || ''}
                         onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })}
-                        className="h-10"
+                        className="h-10 md:w-1/2"
                       />
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="edit-time">Appointment Time *</Label>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
                         {[
                           '09:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
                           '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'
