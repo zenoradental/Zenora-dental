@@ -38,6 +38,18 @@
     -webkit-tap-highlight-color: transparent !important;
 }
 
+/* Global Small Copyright & Admin Portal Text */
+.footer-bottom_element .text-color-dark {
+    font-size: 11px !important;
+    opacity: 0.7 !important;
+}
+.footer-legal-links a {
+    font-size: 9.5px !important;
+    padding: 2px 9px !important;
+    border-radius: 20px !important;
+    opacity: 0.6 !important;
+}
+
 /* =========================================
    TABLET ORIENTATION (768px - 991px)
    ========================================= */
@@ -345,6 +357,198 @@
     }
     .navbar-toggler_bar_top, .navbar-toggler_bar-middle, .navbar_toggler-bar-bottom {
         transition: transform 0.3s ease, opacity 0.3s ease !important;
+    }
+
+    /* ====================================================================
+       SURGICAL FOOTER SPACE & NAVIGATION SECTION FIX (Tablet Max 991px)
+       ==================================================================== */
+    .footer_header {
+        padding-top: 24px !important;
+        padding-bottom: 16px !important;
+        gap: 12px !important;
+    }
+    .footer_element {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 16px !important;
+        padding-top: 12px !important;
+        padding-bottom: 20px !important;
+        margin: 0 !important;
+        width: 100% !important;
+        min-height: auto !important;
+    }
+    .footer_info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        margin-bottom: 0 !important;
+        width: 100% !important;
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+    .footer_info .margin-bottom, .footer_info .margin-24px {
+        margin-bottom: 6px !important;
+    }
+    .footer_info .button-container {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .footer_menu {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 20px 16px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .footer-links-column {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+        margin: 0 !important;
+    }
+}
+
+/* =========================================
+   MOBILE FOOTER NAVIGATION LAYOUT (Max 767px)
+   ========================================= */
+@media screen and (max-width: 767px) {
+    .footer_header {
+        padding-top: 16px !important;
+        padding-bottom: 12px !important;
+    }
+    /* Add perfect breathing room so Get Appointment button and Navigation aren't attached */
+    .footer_element {
+        gap: 28px !important;
+        padding-top: 8px !important;
+        padding-bottom: 24px !important;
+    }
+    .footer_info {
+        flex: 0 0 auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
+    .footer_menu {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 24px 16px !important;
+        padding-top: 16px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    /* Assign Navigation (1st col) & Legal (2nd col) side-by-side, Follow Us spans bottom cleanly */
+    .footer_menu > .footer-links-column:nth-child(3) {
+        grid-column: 1 / -1 !important;
+        margin-top: 8px !important;
+        padding-top: 20px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Professional Social Badge / Pill Design */
+    .footer-menu_link-wrap.is-social {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 10px !important;
+        margin-top: 4px !important;
+    }
+    .footer-menu_link-wrap.is-social .footer-menu_link {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        border-radius: 50px !important;
+        padding: 8px 16px !important;
+        color: #ffffff !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        text-decoration: none !important;
+        transition: all 0.25s ease !important;
+    }
+    .footer-menu_link-wrap.is-social .footer-menu_link:hover {
+        background-color: rgba(255, 255, 255, 0.18) !important;
+        border-color: rgba(255, 255, 255, 0.35) !important;
+        transform: translateY(-2px);
+    }
+    .footer-menu_link-wrap.is-social .footer-social_icon {
+        width: 15px !important;
+        height: 15px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* Professional Copyright & Bottom Bar Styling */
+    .footer_bottom {
+        padding-top: 24px !important;
+        margin-top: 24px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+        width: 100% !important;
+    }
+    .footer-bottom_element {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        width: 100% !important;
+        text-align: center !important;
+    }
+    .footer-bottom_element .text-color-dark {
+        font-size: 11px !important;
+        color: rgba(255, 255, 255, 0.65) !important;
+        letter-spacing: 0.2px !important;
+        text-align: center !important;
+        line-height: 1.5 !important;
+        margin: 0 !important;
+    }
+    .footer-bottom_right {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+    .footer-legal-links a {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        padding: 2px 9px !important;
+        border-radius: 20px !important;
+        font-size: 9.5px !important;
+        letter-spacing: 0.4px !important;
+        text-transform: uppercase !important;
+        color: rgba(255, 255, 255, 0.55) !important;
+        transition: all 0.25s ease !important;
+        display: inline-block !important;
+        line-height: 1.4 !important;
+    }
+    .footer-legal-links a:hover {
+        background-color: rgba(255, 255, 255, 0.12) !important;
+        border-color: rgba(255, 255, 255, 0.35) !important;
+        color: rgba(255, 255, 255, 0.95) !important;
+    }
+}
+
+/* =========================================
+   SMALL MOBILE ORIENTATION (Max 479px)
+   ========================================= */
+@media screen and (max-width: 479px) {
+    .footer_element {
+        gap: 24px !important;
+        padding-top: 6px !important;
+    }
+    .footer_menu {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 20px 12px !important;
+    }
+    .footer-menu_link-wrap.is-social .footer-menu_link {
+        padding: 7px 14px !important;
+        font-size: 12.5px !important;
+        gap: 6px !important;
     }
 }
 

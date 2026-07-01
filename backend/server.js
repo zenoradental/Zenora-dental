@@ -884,10 +884,10 @@ app.delete('/api/doctors/:id', async (req, res) => {
 
 // Serve static files from the dental website
 app.use(express.static(path.join(__dirname, '../ZEMORA DENTAL'), {
-  maxAge: '1d', // Cache static assets for 1 day
+  maxAge: 0,
   setHeaders: (res, reqPath) => {
-    if (reqPath.endsWith('.html')) {
-      res.setHeader('Cache-Control', 'no-cache');
+    if (reqPath.match(/\.(html|css|js)$/)) {
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     }
   }
 }));
