@@ -660,7 +660,29 @@ const MedicalAppointmentSystem = () => {
       if (response.ok) {
         showToast('Appointment details updated successfully.', 'success');
       } else {
-        showToast('Failed to update appointment details on server.', 'error');
+        // Fallback to PATCH endpoints if PUT is propagating or unavailable on edge node
+        let fallbackSuccess = false;
+        if (editForm.doctor !== undefined && editForm.doctor !== selectedAppointment.doctor) {
+          const docRes = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}/doctor`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ doctor: editForm.doctor })
+          });
+          if (docRes.ok) fallbackSuccess = true;
+        }
+        if (editForm.status !== undefined && editForm.status !== selectedAppointment.status) {
+          const statusRes = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: editForm.status })
+          });
+          if (statusRes.ok) fallbackSuccess = true;
+        }
+        if (fallbackSuccess) {
+          showToast('Appointment updated successfully.', 'success');
+        } else {
+          showToast('Failed to update appointment details on server.', 'error');
+        }
       }
     } catch (err) {
       console.error('Error updating appointment details:', err);
