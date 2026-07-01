@@ -656,6 +656,13 @@ app.put('/api/appointments/:id', async (req, res) => {
         ? 'onboarding@resend.dev' 
         : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
         
+      const changeDescriptions = [];
+      if (dateChanged) changeDescriptions.push(`<strong>Date:</strong> <s>${existingApt.appointmentDate}</s> &rarr; <strong style="color: #111827;">${updatedApt.appointmentDate}</strong>`);
+      if (timeChanged) changeDescriptions.push(`<strong>Time:</strong> <s>${existingApt.appointmentTime}</s> &rarr; <strong style="color: #111827;">${updatedApt.appointmentTime}</strong>`);
+      if (doctorChanged) changeDescriptions.push(`<strong>Doctor:</strong> <s>${existingApt.doctor || 'Unassigned'}</s> &rarr; <strong style="color: #111827;">${updatedApt.doctor}</strong>`);
+      
+      const changesHtml = `<ul style="margin: 10px 0; padding-left: 20px; color: #4B5563;">` + changeDescriptions.map(c => `<li style="margin-bottom: 8px;">${c}</li>`).join('') + `</ul>`;
+
       const mailOptions = {
         from: fromAddress,
         to: updatedApt.email,
@@ -664,7 +671,9 @@ app.put('/api/appointments/:id', async (req, res) => {
           'Appointment Details Updated',
           updatedApt.patientName,
           [
-            'We have updated the details of your upcoming appointment. Please review your new appointment details below:',
+            'We have updated the details of your upcoming appointment. The following changes have been made:',
+            changesHtml,
+            'Please review your full, updated appointment details below:',
             'If you have any questions or need to make further changes, please contact us.'
           ],
           [
