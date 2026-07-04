@@ -338,8 +338,8 @@ const MedicalAppointmentSystem = () => {
         const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          // If an optimistic update occurred after this fetch started, discard the stale server response
-          if (lastOptimisticUpdateRef.current > fetchStartTime) return;
+          // If an optimistic update occurred recently, discard the potentially stale server response
+          if (Date.now() - lastOptimisticUpdateRef.current < 3000) return;
           
           let newAppointmentsFound = false;
           const newNotifications: any[] = [];
@@ -469,6 +469,7 @@ const MedicalAppointmentSystem = () => {
         if (apt.status === 'Completed' || apt.status === 'Cancelled') return apt;
         
         const aptDate = apt.appointmentDate;
+        if (!aptDate) return apt; // Priority leads and others without a date shouldn't auto-complete
         if (aptDate < today) return { ...apt, status: 'Completed' };
         
         if (aptDate === today && apt.status === 'Confirmed') {
