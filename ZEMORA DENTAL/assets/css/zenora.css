@@ -6764,7 +6764,8 @@ figure {
   width: var(--_max-width---max-width--100);
   height: var(--_max-width---max-width--100);
   border-radius: var(--_size-variables---border-radius--xl);
-  background-color: var(--primitive-color--neutral-0);
+  background-color: transparent;
+  transform: translateZ(0);
 }
 
 .testimonial-slider_slide {
@@ -6781,6 +6782,8 @@ figure {
   border-radius: var(--_size-variables---border-radius--xl);
   flex-flow: column;
   display: flex;
+  overflow: hidden;
+  transform: translateZ(0); /* Fixes webkit corner bleeding */
 }
 
 .testimonial-slider_author {

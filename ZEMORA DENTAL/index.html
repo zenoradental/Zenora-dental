@@ -78,6 +78,8 @@
         <!-- SGAP cdn -->
         <script defer src="assets/js/gsap.min.js"></script>
         <script defer src="assets/js/ScrollTrigger.min.js"></script>
+        <link href="assets/css/before-after.css" rel="stylesheet" type="text/css"/>
+        <script src="assets/js/before-after.js" defer></script>
     <link href="assets/css/mobile-responsive.css?v=20260704m" rel="stylesheet" type="text/css"/>
 </head>
     <body>
@@ -1143,6 +1145,49 @@
                         </div>
                     </div>
                 </section>
+                
+                <!-- BEFORE AND AFTER SECTION -->
+                <section class="ba-section">
+                    <div class="ba-container">
+                        <div class="title-wrap" style="text-align: center; margin-bottom: 40px;">
+                            <div class="margin-bottom margin-12px" style="display: flex; justify-content: center;">
+                                <div class="section_tag">
+                                    <div class="icon_wrap is-small">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 12 12" fill="none" vector-effect="non-scaling-stroke" preserveAspectRatio="none">
+                                            <path d="M12 5.45455H7.31455L10.6255 2.14364L9.85636 1.37455L6.54545 4.68545V0H5.45455V4.68545L2.14364 1.37455L1.37455 2.14364L4.68545 5.45455H0V6.54545H4.68545L1.37455 9.85636L2.14364 10.6255L5.45455 7.31455V12H6.54545V7.31455L9.85636 10.6255L10.6255 9.85636L7.31455 6.54545H12V5.45455Z" fill="currentColor"></path>
+                                        </svg>
+                                    </div>
+                                    <div>Real Results</div>
+                                </div>
+                            </div>
+                            <h2>Transform Your <span class="text-highlighted">Smile</span></h2>
+                            <p class="body-text-18px" style="margin-top: 16px; max-width: 500px; margin-inline: auto;">See the stunning difference a professional treatment can make. Drag the slider to compare.</p>
+                        </div>
+                        
+                        <div class="ba-slider-container">
+                            <div class="ba-label ba-label-before">Before</div>
+                            <div class="ba-label ba-label-after">After</div>
+                            
+                            <!-- After Image (Background) -->
+                            <img class="ba-image" src="assets/img/ba-after.png" alt="After treatment">
+                            
+                            <!-- Before Image (Cropped foreground) -->
+                            <div class="ba-before-wrapper">
+                                <img class="ba-image" src="assets/img/ba-before.png" alt="Before treatment">
+                            </div>
+                            
+                            <!-- Handle -->
+                            <div class="ba-handle">
+                                <div class="ba-slider-button">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: -12px;"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <!-- /BEFORE AND AFTER SECTION -->
+
                 <section class="section_testimonial is-home">
                     <div class="section-padding padding-100x100">
                         <div class="container">
