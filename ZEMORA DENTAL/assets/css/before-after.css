@@ -46,21 +46,19 @@
     -webkit-user-drag: none;
 }
 
-/* The 'Before' image wrapper is cropped */
+/* The 'Before' image wrapper is cropped using clip-path */
 .ba-before-wrapper {
     position: absolute;
     top: 0;
     left: 0;
-    width: 50%; /* Starting position */
+    width: 100%;
     height: 100%;
-    overflow: hidden;
+    clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%);
     z-index: 10;
 }
 
 .ba-before-wrapper .ba-image {
-    /* Image must stay exactly the same width as the container, not the wrapper */
-    width: 100vw; 
-    max-width: 900px; 
+    width: 100%; 
 }
 
 /* The Handle */

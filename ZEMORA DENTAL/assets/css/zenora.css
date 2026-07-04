@@ -9622,3 +9622,39 @@ footer{border-top:3px solid var(--primitive-color--primary-500,#24a3b1);}
         margin-bottom: 40px !important;
     }
 }
+
+/* ===== UNLIMITED MARQUEE SLIDER ===== */
+.marquee-container {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%); /* Full bleed override if needed */
+    position: relative;
+    overflow: hidden;
+    padding: 20px 0;
+    cursor: grab;
+}
+
+.marquee-container:active {
+    cursor: grabbing;
+}
+
+.marquee-track {
+    display: flex;
+    gap: 24px;
+    width: max-content;
+    animation: scroll-marquee 40s linear infinite;
+}
+
+.marquee-track:hover {
+    animation-play-state: paused;
+}
+
+@keyframes scroll-marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%); /* Moves exactly half the width (the first 5 cards) */
+    }
+}
+
+
