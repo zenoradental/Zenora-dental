@@ -7777,6 +7777,12 @@ figure {
   .tooltip_wrap {
     display: none;
   }
+
+  .blog-item_image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 @media screen and (max-width: 767px) {
