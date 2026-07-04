@@ -623,7 +623,6 @@
     }
 
     /* Ensure image wrappers scale nicely without chopping image content */
-    .blog-item_image-wrap,
     .our-story_item-image_wrap,
     .home-value_image-wrap,
     .feature-blog_image-wrap {
@@ -634,7 +633,6 @@
         overflow: hidden !important;
     }
 
-    .blog-item_image,
     .our-story_item-image,
     .home-value_image,
     .feature-blog_image {
@@ -642,11 +640,5 @@
         height: 100% !important;
         object-fit: cover !important;
         object-position: center center !important;
-    }
-
-    /* Allow flexible card heights so images do not compress or slice awkwardly */
-    .blog_item {
-        height: auto !important;
-        min-height: 360px !important;
     }
 }
