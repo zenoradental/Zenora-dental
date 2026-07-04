@@ -52,19 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Apply to elements
             sliderHandle.style.left = percentage + '%';
-            beforeWrapper.style.width = percentage + '%';
+            beforeWrapper.style.clipPath = `polygon(0 0, ${percentage}% 0, ${percentage}% 100%, 0 100%)`;
         }
-        
-        // Ensure image width inside wrapper matches container exactly on window resize
-        const beforeImage = beforeWrapper.querySelector('.ba-image');
-        
-        function resizeImage() {
-            const rect = container.getBoundingClientRect();
-            beforeImage.style.width = rect.width + 'px';
-        }
-        
-        window.addEventListener('resize', resizeImage);
-        // Initial setup
-        resizeImage();
     });
 });
