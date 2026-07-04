@@ -727,13 +727,37 @@ app.delete('/api/appointments', async (req, res) => {
 app.delete('/api/patients/:id', async (req, res) => {
   try {
     const id = decodeURIComponent(req.params.id);
-    await Appointment.deleteMany({
-      $or: [
-        { email: id },
-        { phone: id },
-        { patientName: id }
-      ]
-    });
+    
+    if (id.includes('|')) {
+      const [name, contact] = id.split('|');
+      
+      const query = {
+        patientName: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+      };
+      
+      if (contact) {
+        query.$or = [
+          { email: contact },
+          { phone: contact }
+        ];
+      } else {
+        query.$and = [
+          { email: { $in: [null, ''] } },
+          { phone: { $in: [null, ''] } }
+        ];
+      }
+      
+      await Appointment.deleteMany(query);
+    } else {
+      // Fallback for old style identifiers just in case
+      await Appointment.deleteMany({
+        $or: [
+          { email: id },
+          { phone: id },
+          { patientName: id }
+        ]
+      });
+    }
     res.json({ success: true, message: 'Patient and associated appointments deleted.' });
   } catch (err) {
     console.error(err);

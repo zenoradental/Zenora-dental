@@ -1441,7 +1441,12 @@ const MedicalAppointmentSystem = () => {
         try {
           const res = await fetch(`https://zenora-backend-black.vercel.app/api/patients/${encodeURIComponent(patient.id)}`, { method: 'DELETE' });
           if (res.ok) {
-            setAppointments(prev => prev.filter(apt => (apt.email || apt.phone || apt.patientName) !== patient.id));
+            setAppointments(prev => prev.filter(apt => {
+              const contact = apt.email || apt.phone || '';
+              const name = apt.patientName?.trim().toLowerCase() || '';
+              const key = `${name}|${contact}`;
+              return key !== patient.id;
+            }));
             showToast('Patient and appointment records deleted.', 'success');
           } else {
             const err = await res.json();
@@ -1637,7 +1642,9 @@ const MedicalAppointmentSystem = () => {
   const renderPatients = () => {
     const patientsMap = new Map();
     appointments.forEach(apt => {
-      const key = apt.email || apt.phone || apt.patientName;
+      const contact = apt.email || apt.phone || '';
+      const name = apt.patientName?.trim().toLowerCase() || '';
+      const key = `${name}|${contact}`;
       if (!patientsMap.has(key)) {
         patientsMap.set(key, {
           id: key,
