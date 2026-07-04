@@ -333,7 +333,6 @@ const MedicalAppointmentSystem = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       if (isUpdatingRef.current) return;
-      const fetchStartTime = Date.now();
       try {
         const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, { cache: 'no-store' });
         if (res.ok) {
