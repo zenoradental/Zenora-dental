@@ -623,7 +623,6 @@
     }
 
     /* Ensure image wrappers scale nicely without chopping image content */
-    .our-story_item-image_wrap,
     .home-value_image-wrap,
     .feature-blog_image-wrap {
         position: relative !important;
@@ -633,6 +632,15 @@
         overflow: hidden !important;
     }
 
+    /* Force consistent height for Our Story images on mobile */
+    .our-story_item-image_wrap {
+        position: relative !important;
+        height: 240px !important;
+        width: 100% !important;
+        overflow: hidden !important;
+        flex: none !important;
+    }
+
     .our-story_item-image,
     .home-value_image,
     .feature-blog_image {
@@ -640,5 +648,10 @@
         height: 100% !important;
         object-fit: cover !important;
         object-position: center center !important;
+    }
+
+    /* Swap order so image is above text on mobile */
+    .our-story_item {
+        flex-direction: column-reverse !important;
     }
 }
