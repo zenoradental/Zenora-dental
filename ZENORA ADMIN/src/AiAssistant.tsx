@@ -176,6 +176,10 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [],
       response = "Zenora Systems online. Good day, Doctor. How may I assist with your clinic operations?";
     } else if (text.includes('your name') || text.includes('who are you')) {
       response = "I am Zenora AI, a clinical management system engineered to optimize your workflow and patient care.";
+    } else if (text.includes('what can you do') || text.includes('help') || text.includes('features')) {
+      response = "I can manage your appointments, export patient data, and provide live schedule summaries. You can ask me 'who is the next patient?', 'how many patients today?', or tell me to 'export data' or 'show pending appointments'.";
+    } else if (text.includes('about zenora') || text.includes('what is zenora') || text.includes('about this dashboard') || text.includes('what is this dashboard') || text.includes('tell me about the dashboard')) {
+      response = "Zenora Admin is your clinic's central operating system. It provides a real-time Command Center, patient scheduling, and automated workflows to streamline your dental practice.";
     } else {
       // Try to be smart and answer general or medical questions!
       try {
