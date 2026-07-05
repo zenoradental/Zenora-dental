@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 console.log("CACHE BUSTER 1");
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, startOfWeek, endOfWeek, isToday } from 'date-fns';
+import { format, eachDayOfInterval, startOfWeek, endOfWeek, isToday, addWeeks, subWeeks, parse } from 'date-fns';
 import customLogo from './assets/favicon.svg';
 import { 
   Bell, 
@@ -230,7 +230,7 @@ const MedicalAppointmentSystem = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate] = useState(new Date());
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
@@ -1219,21 +1219,21 @@ const MedicalAppointmentSystem = () => {
       </Card>
     </div>
   );
-
   const renderCalendar = () => {
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart);
-    const endDate = endOfWeek(monthEnd);
+    const weekStart = startOfWeek(currentMonth, { weekStartsOn: 0 }); // Sunday
+    const weekEnd = endOfWeek(currentMonth, { weekStartsOn: 0 });
+    const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+    
+    // 8 AM to 6 PM
+    const hours = Array.from({ length: 11 }, (_, i) => i + 8);
 
-    const days = eachDayOfInterval({ start: startDate, end: endDate });
-
-    const getAppointmentsForDay = (day: Date) => {
-      return appointments.filter(apt => apt.appointmentDate === format(day, 'yyyy-MM-dd'));
+    const getAppointmentsForDay = (date: Date) => {
+      const dateStr = format(date, 'yyyy-MM-dd');
+      return appointments.filter(apt => apt.appointmentDate === dateStr);
     };
 
     const handleDragStart = (e: React.DragEvent, apt: any) => {
-      e.dataTransfer.setData('appointmentId', apt.appointmentId || (apt as any).id);
+      e.dataTransfer.setData('appointmentId', apt.appointmentId || apt.id);
       e.dataTransfer.effectAllowed = 'move';
     };
 
@@ -1242,16 +1242,21 @@ const MedicalAppointmentSystem = () => {
       e.dataTransfer.dropEffect = 'move';
     };
 
-    const handleDrop = async (e: React.DragEvent, targetDate: Date) => {
+    const handleDrop = async (e: React.DragEvent, targetDate: Date, targetHour: number) => {
       e.preventDefault();
       const aptId = e.dataTransfer.getData('appointmentId');
       if (!aptId) return;
 
       const dateStr = format(targetDate, 'yyyy-MM-dd');
       
+      // Convert 24h targetHour to 12h format (e.g., 14 -> "02:00 PM")
+      const timeStr = format(new Date().setHours(targetHour, 0, 0, 0), 'hh:mm a');
+      
       // Optimistic update
       const updatedAppointments = appointments.map(a => 
-        (a.appointmentId === aptId || (a as any).id === aptId) ? { ...a, appointmentDate: dateStr } : a
+        (a.appointmentId === aptId || (a as any).id === aptId) 
+          ? { ...a, appointmentDate: dateStr, appointmentTime: timeStr } 
+          : a
       );
       setAppointments(updatedAppointments);
 
@@ -1260,10 +1265,10 @@ const MedicalAppointmentSystem = () => {
         await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${aptId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ appointmentDate: dateStr })
+          body: JSON.stringify({ appointmentDate: dateStr, appointmentTime: timeStr })
         });
       } catch (err) {
-        console.error("Failed to persist date change", err);
+        console.error("Failed to persist date/time change", err);
       }
     };
 
@@ -1281,79 +1286,116 @@ const MedicalAppointmentSystem = () => {
       <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Interactive Calendar</h2>
-            <p className="text-zinc-500">Manage your schedule visually</p>
+            <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Weekly Schedule</h2>
+            <p className="text-zinc-500">Drag and drop to reschedule appointments</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>Prev</Button>
-            <div className="text-lg font-bold flex items-center px-4 min-w-[150px] justify-center">{format(currentMonth, 'MMMM yyyy')}</div>
-            <Button variant="outline" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>Next</Button>
+            <Button variant="outline" onClick={() => setCurrentMonth(subWeeks(currentMonth, 1))}>Prev Week</Button>
+            <div className="text-lg font-bold flex items-center px-4 min-w-[200px] justify-center">
+              {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
+            </div>
+            <Button variant="outline" onClick={() => setCurrentMonth(addWeeks(currentMonth, 1))}>Next Week</Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2 overflow-hidden border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-zinc-950">
-            {/* Header */}
-            <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="py-2.5 text-center text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-                  {day}
+        <div className="grid grid-cols-1 gap-6">
+          <Card className="overflow-hidden border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-zinc-950 flex flex-col h-[700px]">
+            {/* Header: Days */}
+            <div className="grid grid-cols-8 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 pr-[14px]">
+              <div className="py-2.5 flex items-center justify-center text-[10px] font-semibold text-zinc-400 uppercase tracking-wider border-r border-zinc-200 dark:border-zinc-800">
+                Time
+              </div>
+              {days.map(day => (
+                <div key={day.toISOString()} className="py-2 flex flex-col items-center justify-center border-l border-transparent">
+                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{format(day, 'EEE')}</span>
+                  <span className={cn(
+                    "text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full mt-0.5",
+                    isToday(day) ? "bg-indigo-600 text-white shadow-sm" : "text-zinc-900 dark:text-zinc-100"
+                  )}>
+                    {format(day, 'd')}
+                  </span>
                 </div>
               ))}
             </div>
-            {/* Seamless Grid */}
-            <div className="grid grid-cols-7 auto-rows-[minmax(120px,1fr)] bg-zinc-200 dark:bg-zinc-800 gap-[1px]">
-              {days.map((day, i) => {
-                const dayApts = getAppointmentsForDay(day);
-                const isCurrentMonth = isSameMonth(day, monthStart);
-                return (
-                  <div 
-                    key={i} 
-                    onClick={() => setSelectedDate(day)}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, day)}
-                    className={cn(
-                      "relative p-1.5 sm:p-2 cursor-pointer transition-colors flex flex-col group/cell",
-                      isCurrentMonth ? "bg-white dark:bg-zinc-950 hover:bg-zinc-50 dark:hover:bg-zinc-900/50" : "bg-zinc-50/50 dark:bg-zinc-900/30",
-                      isSameDay(day, selectedDate) && "bg-indigo-50/30 dark:bg-indigo-900/10 ring-1 ring-inset ring-indigo-500/50 z-10"
-                    )}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className={cn(
-                        "text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full transition-colors", 
-                        isToday(day) 
-                          ? "bg-indigo-600 text-white shadow-sm" 
-                          : isSameDay(day, selectedDate) 
-                            ? "text-indigo-600 dark:text-indigo-400 font-bold" 
-                            : !isCurrentMonth 
-                              ? "text-zinc-400 dark:text-zinc-600 font-medium" 
-                              : "text-zinc-700 dark:text-zinc-300 group-hover/cell:text-zinc-900 dark:group-hover/cell:text-white"
-                      )}>
-                        {format(day, "d")}
+
+            {/* Scrollable Time Grid */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+              <div className="grid grid-cols-8 min-w-max w-full">
+                {/* Time Axis */}
+                <div className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 sticky left-0 z-20">
+                  {hours.map(hour => (
+                    <div key={hour} className="h-[80px] border-b border-zinc-100 dark:border-zinc-800/50 flex items-start justify-center pt-2">
+                      <span className="text-[11px] font-medium text-zinc-400">
+                        {format(new Date().setHours(hour, 0), 'h a')}
                       </span>
                     </div>
-                    <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                      {dayApts.map((apt, j) => (
+                  ))}
+                </div>
+
+                {/* Day Columns */}
+                {days.map(day => {
+                  const dayApts = getAppointmentsForDay(day);
+                  return (
+                    <div key={day.toISOString()} className="flex flex-col relative border-l border-zinc-100 dark:border-zinc-800/50">
+                      {hours.map(hour => (
                         <div 
-                          key={j} 
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, apt)}
-                          onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); }}
-                          className="group relative bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-sm hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700 rounded-md p-1.5 transition-all cursor-grab active:cursor-grabbing active:scale-[0.98] active:shadow-none"
-                        >
-                          <div className="flex items-center gap-1.5 mb-0.5">
-                            <div className={cn("w-1.5 h-1.5 rounded-full shrink-0", getDotColor(apt.status))} />
-                            <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 truncate">{apt.appointmentTime}</span>
-                          </div>
-                          <div className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate pl-3">
-                            {apt.patientName}
-                          </div>
-                        </div>
+                          key={hour} 
+                          className="h-[80px] border-b border-zinc-100 dark:border-zinc-800/50 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/50"
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, day, hour)}
+                        />
                       ))}
+                      
+                      {/* Appointments (Absolutely Positioned) */}
+                      {dayApts.map((apt, j) => {
+                        // Calculate position based on time
+                        // Assuming format "10:30 AM" or "14:00"
+                        let aptDate;
+                        try {
+                          aptDate = parse(apt.appointmentTime, 'hh:mm a', day);
+                        } catch(e) {
+                          try { aptDate = parse(apt.appointmentTime, 'h:mm a', day); }
+                          catch(e2) { aptDate = new Date(day.setHours(9,0)); }
+                        }
+                        
+                        if (isNaN(aptDate.getTime())) aptDate = new Date(day.setHours(9,0));
+                        
+                        const aptHour = aptDate.getHours();
+                        const aptMinute = aptDate.getMinutes();
+                        
+                        // Map to top offset: each hour is 80px, starting at 8 AM (index 0)
+                        const startHourIndex = aptHour - 8;
+                        const topPx = (startHourIndex * 80) + ((aptMinute / 60) * 80);
+                        
+                        // If it's outside our 8am-6pm window, hide it or clamp it
+                        if (startHourIndex < 0 || startHourIndex > 10) return null;
+
+                        return (
+                          <div 
+                            key={j} 
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, apt)}
+                            onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); }}
+                            style={{ top: `${topPx}px`, height: '60px' }}
+                            className="absolute left-1 right-1 group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow hover:border-indigo-300 dark:hover:border-indigo-600 rounded-md p-1.5 transition-shadow cursor-grab active:cursor-grabbing z-10 overflow-hidden"
+                          >
+                            <div className="absolute top-0 left-0 bottom-0 w-1 bg-indigo-500 rounded-l-md" />
+                            <div className="pl-1.5 flex flex-col justify-center h-full">
+                              <div className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate leading-tight">
+                                {apt.patientName}
+                              </div>
+                              <div className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate flex items-center gap-1">
+                                <Clock className="w-2.5 h-2.5 shrink-0" />
+                                {apt.appointmentTime}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </Card>
 
