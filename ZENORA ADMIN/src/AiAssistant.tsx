@@ -81,25 +81,25 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
 
     if (text.includes('priority') || text.includes('urgent')) {
       onCommand('filter_priority');
-      response = "Filtering for priority leads, Doctor.";
+      response = "Certainly. Filtering patient database for high-priority leads immediately.";
     } else if (text.includes('search for') || text.includes('find')) {
       const searchTerms = text.replace('search for', '').replace('find', '').trim();
       onCommand('search', searchTerms);
-      response = `Searching for ${searchTerms}, Doctor.`;
+      response = `Initializing search parameters for ${searchTerms}.`;
     } else if (text.includes('dashboard') || text.includes('home')) {
       onCommand('navigate', 'dashboard');
-      response = "Navigating to Dashboard.";
+      response = "Redirecting to main dashboard.";
     } else if (text.includes('command center') || text.includes('live')) {
       onCommand('navigate', 'command-center');
-      response = "Opening Live Command Center.";
+      response = "Accessing Live Command Center.";
     } else if (text.includes('hello') || text.includes('hi')) {
-      response = "Hello Doctor. I am your clinic's AI assistant. How can I help you today?";
+      response = "Zenora Systems online. Good day, Doctor. How may I assist with your clinic operations?";
     } else if (text.includes('how many patients') || text.includes('patients today')) {
-      response = "Let me check... You have several appointments scheduled for today, Doctor. Would you like me to open the Command Center?";
+      response = "Your itinerary indicates multiple scheduled consultations today. Shall I load the Command Center for a comprehensive review?";
     } else if (text.includes('your name') || text.includes('who are you')) {
-      response = "I am Zenora AI, your personal clinical assistant. I'm here to help you manage the clinic.";
+      response = "I am Zenora AI, a clinical management system engineered to optimize your workflow and patient care.";
     } else {
-      response = "I'm sorry Doctor, I am currently configured strictly for clinic command and control. Try asking me to open the command center or show priority leads.";
+      response = "Command not recognized within current operational parameters. Please specify a valid clinic management directive.";
     }
 
     if (response) {
@@ -112,7 +112,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
       recognitionRef.current?.stop();
     } else {
       recognitionRef.current?.start();
-      speak("How can I help you?");
+      speak("Awaiting instructions, Doctor.");
     }
   };
 
