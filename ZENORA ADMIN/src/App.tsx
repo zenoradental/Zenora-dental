@@ -1257,7 +1257,7 @@ const MedicalAppointmentSystem = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-zinc-900">Weekly Schedule</h2>
-            <p className="text-zinc-500">Drag and drop to reschedule appointments</p>
+            <p className="text-zinc-500">Click on an appointment to view details or edit</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setCurrentMonth(subWeeks(currentMonth, 1))}>Prev Week</Button>
@@ -1290,7 +1290,7 @@ const MedicalAppointmentSystem = () => {
 
             {/* Scrollable Time Grid */}
             <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-              <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] min-w-max w-full">
+              <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] min-w-max w-full pt-3">
                 {/* Time Axis */}
                 <div className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 sticky left-0 z-20 shrink-0">
                   {hours.map(hour => (
