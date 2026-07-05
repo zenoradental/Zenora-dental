@@ -74,6 +74,8 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
         v.name.includes('Google UK English Male') || 
         v.name.includes('Daniel') || 
         v.name.includes('Arthur') ||
+        v.name.includes('David') ||
+        v.name.includes('Mark') ||
         (v.lang === 'en-GB' && v.name.includes('Male')) ||
         v.name.includes('Male')
       );
