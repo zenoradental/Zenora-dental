@@ -60,6 +60,18 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
         utterance.voice = preferredVoice;
       }
       
+      // Prevent garbage collection bug in Chrome
+      (window as any).utterances = (window as any).utterances || [];
+      (window as any).utterances.push(utterance);
+      
+      utterance.onend = () => {
+        // Cleanup after speaking
+        const index = (window as any).utterances.indexOf(utterance);
+        if (index > -1) {
+          (window as any).utterances.splice(index, 1);
+        }
+      };
+      
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -80,8 +92,14 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
     } else if (text.includes('command center') || text.includes('live')) {
       onCommand('navigate', 'command-center');
       response = "Opening Live Command Center.";
+    } else if (text.includes('hello') || text.includes('hi')) {
+      response = "Hello Doctor. I am your clinic's AI assistant. How can I help you today?";
+    } else if (text.includes('how many patients') || text.includes('patients today')) {
+      response = "Let me check... You have several appointments scheduled for today, Doctor. Would you like me to open the Command Center?";
+    } else if (text.includes('your name') || text.includes('who are you')) {
+      response = "I am Zenora AI, your personal clinical assistant. I'm here to help you manage the clinic.";
     } else {
-      response = "I heard you, but I don't recognize that command.";
+      response = "I'm sorry Doctor, I am currently configured strictly for clinic command and control. Try asking me to open the command center or show priority leads.";
     }
 
     if (response) {
