@@ -2178,17 +2178,32 @@ const MedicalAppointmentSystem = () => {
         </main>
       </div>
 
-      <AiAssistant onCommand={(command, args) => {
-        if (command === 'filter_priority') {
-          setCurrentPage('appointments');
-          setStatusFilter('priority');
-        } else if (command === 'search') {
-          setCurrentPage('appointments');
-          setSearchQuery(args || '');
-        } else if (command === 'navigate') {
-          setCurrentPage(args as any);
-        }
-      }} />
+      <AiAssistant 
+        appointments={appointments}
+        doctors={doctors}
+        systemSettings={systemSettings}
+        onCommand={(command, args) => {
+          if (command === 'filter_priority') {
+            setCurrentPage('appointments');
+            setStatusFilter('priority');
+          } else if (command === 'filter_today') {
+            setCurrentPage('appointments');
+            setDateFilter('today');
+          } else if (command === 'filter_pending') {
+            setCurrentPage('appointments');
+            setStatusFilter('Pending');
+          } else if (command === 'search') {
+            setCurrentPage('appointments');
+            setSearchQuery(args || '');
+          } else if (command === 'navigate') {
+            setCurrentPage(args as any);
+          } else if (command === 'export_csv') {
+            exportToCSV();
+          } else if (command === 'clear_database') {
+            handleClearAppointments();
+          }
+        }} 
+      />
 
       {/* Patient Details / Edit Dialog */}
       <Dialog open={showDetails} onOpenChange={(val) => {
