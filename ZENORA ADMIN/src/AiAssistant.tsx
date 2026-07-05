@@ -71,49 +71,41 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
   }, []);
 
   const speak = (text: string) => {
+    try {
+      // Use the world-class Amazon Polly 'Brian' voice via StreamElements API
+      const url = `https://api.streamelements.com/kappa/v2/speech?voice=Brian&text=${encodeURIComponent(text)}`;
+      const audio = new Audio(url);
+      
+      audio.play().catch(e => {
+        console.error("Cloud TTS failed, falling back to local TTS:", e);
+        fallbackSpeak(text);
+      });
+    } catch (e) {
+      console.error(e);
+      fallbackSpeak(text);
+    }
+  };
+
+  const fallbackSpeak = (text: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
-      // Drop the pitch to mathematically force a deeper, masculine/JARVIS-like voice
-      // This guarantees a male sound even if the PC only has female voices installed.
       utterance.pitch = 0.7;
       utterance.rate = 1;
       
-      // Try to find a good British Male voice (JARVIS style)
       const voices = window.speechSynthesis.getVoices();
       let preferredVoice = voices.find(v => {
         const name = v.name.toLowerCase();
-        return name.includes('uk english male') || 
-               name.includes('daniel') || 
-               name.includes('arthur') ||
-               name.includes('david') ||
-               name.includes('mark') ||
-               name.includes('george') ||
-               (v.lang === 'en-GB' && name.includes('male')) ||
-               name.includes('male');
+        return name.includes('uk english male') || name.includes('daniel') || name.includes('arthur');
       });
       
-      // If none found, aggressively pick any voice that isn't female-sounding
-      if (!preferredVoice && voices.length > 0) {
-        preferredVoice = voices.find(v => {
-          const name = v.name.toLowerCase();
-          return !name.includes('female') && !name.includes('zira') && !name.includes('samantha') && !name.includes('susan');
-        });
-      }
+      if (preferredVoice) utterance.voice = preferredVoice;
       
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-      }
-      
-      // Prevent garbage collection bug in Chrome
       (window as any).utterances = (window as any).utterances || [];
       (window as any).utterances.push(utterance);
       
       utterance.onend = () => {
-        // Cleanup after speaking
         const index = (window as any).utterances.indexOf(utterance);
-        if (index > -1) {
-          (window as any).utterances.splice(index, 1);
-        }
+        if (index > -1) (window as any).utterances.splice(index, 1);
       };
       
       window.speechSynthesis.speak(utterance);
