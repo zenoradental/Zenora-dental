@@ -612,8 +612,10 @@ const MedicalAppointmentSystem = () => {
       return 0;
     });
 
-  const todayAppointments = appointments.filter(apt => apt.appointmentDate === new Date().toISOString().split('T')[0]);
-  const pendingAppointments = appointments.filter(apt => apt.status === 'Pending');
+  const today = new Date();
+  const localToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const todayAppointments = appointments.filter(apt => apt.appointmentDate === localToday);
+  const pendingAppointments = appointments.filter(apt => (apt.stage || 'Pending') === 'Pending');
 
   const handleStatusChange = async (appointmentId: string, newStatus: Appointment['status']) => {
     isUpdatingRef.current = true;
