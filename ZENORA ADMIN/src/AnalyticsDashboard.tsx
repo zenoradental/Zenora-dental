@@ -80,12 +80,14 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
     const currentTotal = rev[rev.length - 1].revenue;
     const prevTotal = rev[rev.length - 2].revenue;
     const growth = ((currentTotal - prevTotal) / prevTotal) * 100;
+    const allTimeTotal = rev.reduce((acc, curr) => acc + curr.revenue, 0);
 
     return {
       revenueData: rev,
       treatmentData: treatments,
       kpis: {
         totalRevenue: currentTotal,
+        allTimeRevenue: allTimeTotal,
         growth: growth.toFixed(1),
         avgValue: currentTotal / currentAppointments,
         projectedAnnual: currentTotal * 12,
@@ -110,12 +112,30 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        
         <Card className="border-zinc-200 shadow-sm rounded-xl bg-white dark:bg-zinc-900/50">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-zinc-500">Total Revenue</p>
+                <p className="text-sm font-medium text-zinc-500">All-Time Revenue</p>
+                <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.allTimeRevenue} prefix="$" isCurrency /></h3>
+              </div>
+              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                <DollarSign className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm">
+              <span className="text-zinc-500">Total historical revenue</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-zinc-200 shadow-sm rounded-xl bg-white dark:bg-zinc-900/50">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-zinc-500">Monthly Revenue</p>
                 <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.totalRevenue} prefix="$" isCurrency /></h3>
               </div>
               <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
