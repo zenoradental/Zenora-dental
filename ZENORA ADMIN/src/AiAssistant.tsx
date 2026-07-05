@@ -20,6 +20,14 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
+      // Force Chrome to load voices asynchronously on mount
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.getVoices();
+        };
+      }
+
       recognition.onstart = () => {
         setIsListening(true);
         setTranscript('Listening...');
@@ -70,15 +78,22 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
       
       // Try to find a good British Male voice (JARVIS style)
       const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(v => 
+      let preferredVoice = voices.find(v => 
         v.name.includes('Google UK English Male') || 
         v.name.includes('Daniel') || 
         v.name.includes('Arthur') ||
         v.name.includes('David') ||
         v.name.includes('Mark') ||
+        v.name.includes('George') ||
         (v.lang === 'en-GB' && v.name.includes('Male')) ||
         v.name.includes('Male')
       );
+      
+      // If none found, aggressively pick any voice that isn't female-sounding
+      if (!preferredVoice && voices.length > 0) {
+        preferredVoice = voices.find(v => !v.name.includes('Female') && !v.name.includes('Zira') && !v.name.includes('Samantha') && !v.name.includes('Susan'));
+      }
+      
       if (preferredVoice) {
         utterance.voice = preferredVoice;
       }
