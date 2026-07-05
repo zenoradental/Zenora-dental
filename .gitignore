@@ -5,3 +5,5 @@ preview-all.html
 *_BACKUP/
 *.zip
 dist/
+.vercel
+.env*
