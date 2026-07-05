@@ -1242,6 +1242,16 @@ const MedicalAppointmentSystem = () => {
       }
     };
 
+    const getPillStyle = (status: string) => {
+      switch(status) {
+        case 'Pending': return 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-100 border-l-amber-500';
+        case 'Confirmed': return 'bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 border-blue-200 dark:border-blue-500/30 text-blue-900 dark:text-blue-100 border-l-blue-500';
+        case 'Completed': return 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-100 border-l-emerald-500';
+        case 'Cancelled': return 'bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 border-red-200 dark:border-red-500/30 text-red-900 dark:text-red-100 border-l-red-500 opacity-60';
+        default: return 'bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-500/10 dark:hover:bg-zinc-500/20 border-zinc-200 dark:border-zinc-500/30 text-zinc-900 dark:text-zinc-100 border-l-zinc-500';
+      }
+    };
+
     return (
       <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -1261,8 +1271,8 @@ const MedicalAppointmentSystem = () => {
         <div className="grid grid-cols-1 gap-6">
           <Card className="overflow-hidden border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-zinc-950 flex flex-col h-[700px]">
             {/* Header: Days */}
-            <div className="grid grid-cols-8 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 pr-[14px]">
-              <div className="py-2.5 flex items-center justify-center text-[10px] font-semibold text-zinc-400 uppercase tracking-wider border-r border-zinc-200 dark:border-zinc-800">
+            <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 pr-[14px]">
+              <div className="py-2.5 flex items-center justify-center text-[10px] font-semibold text-zinc-400 uppercase tracking-wider border-r border-zinc-200 dark:border-zinc-800 shrink-0">
                 Time
               </div>
               {days.map(day => (
@@ -1280,12 +1290,12 @@ const MedicalAppointmentSystem = () => {
 
             {/* Scrollable Time Grid */}
             <div className="flex-1 overflow-y-auto custom-scrollbar relative">
-              <div className="grid grid-cols-8 min-w-max w-full">
+              <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] min-w-max w-full">
                 {/* Time Axis */}
-                <div className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 sticky left-0 z-20">
+                <div className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 sticky left-0 z-20 shrink-0">
                   {hours.map(hour => (
-                    <div key={hour} className="h-[80px] border-b border-zinc-100 dark:border-zinc-800/50 flex items-start justify-center pt-2">
-                      <span className="text-[11px] font-medium text-zinc-400">
+                    <div key={hour} className="h-[80px] relative">
+                      <span className="absolute -top-[9px] right-2 text-[10px] font-medium text-zinc-400 bg-white dark:bg-zinc-950/50 px-1 z-10">
                         {format(new Date().setHours(hour, 0), 'h a')}
                       </span>
                     </div>
@@ -1295,19 +1305,44 @@ const MedicalAppointmentSystem = () => {
                 {/* Day Columns */}
                 {days.map(day => {
                   const dayApts = getAppointmentsForDay(day);
+                  const isCurrentDay = isToday(day);
+                  const now = new Date();
+                  const currentHour = now.getHours();
+                  const currentMinute = now.getMinutes();
+                  const showCurrentTime = isCurrentDay && currentHour >= 8 && currentHour < 19;
+                  const currentTimeTop = showCurrentTime ? ((currentHour - 8) * 80) + ((currentMinute / 60) * 80) : 0;
+
                   return (
-                    <div key={day.toISOString()} className="flex flex-col relative border-l border-zinc-100 dark:border-zinc-800/50">
+                    <div 
+                      key={day.toISOString()} 
+                      className={cn(
+                        "flex flex-col relative border-l border-zinc-100 dark:border-zinc-800/50",
+                        isCurrentDay ? "bg-indigo-50/10 dark:bg-indigo-900/5" : ""
+                      )}
+                    >
+                      {/* Current Time Indicator */}
+                      {showCurrentTime && (
+                        <div 
+                          className="absolute left-0 right-0 z-20 flex items-center pointer-events-none"
+                          style={{ top: `${currentTimeTop}px`, transform: 'translateY(-50%)' }}
+                        >
+                          <div className="w-2 h-2 rounded-full bg-red-500 absolute -left-1 shadow-[0_0_4px_rgba(239,68,68,0.5)]" />
+                          <div className="h-[2px] bg-red-500 w-full shadow-[0_0_4px_rgba(239,68,68,0.3)]" />
+                        </div>
+                      )}
+
                       {hours.map(hour => (
                         <div 
                           key={hour} 
-                          className="h-[80px] border-b border-zinc-100 dark:border-zinc-800/50 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/50"
-                        />
+                          className="h-[80px] border-b border-zinc-100 dark:border-zinc-800/50 transition-colors relative group/cell"
+                        >
+                          <div className="absolute top-1/2 left-0 right-0 border-b border-dashed border-zinc-100 dark:border-zinc-800/30" />
+                        </div>
                       ))}
                       
                       {/* Appointments (Absolutely Positioned) */}
                       {dayApts.map((apt, j) => {
                         // Calculate position based on time
-                        // Assuming format "10:30 AM" or "14:00"
                         let aptDate;
                         try {
                           aptDate = parse(apt.appointmentTime, 'hh:mm a', day);
@@ -1325,7 +1360,6 @@ const MedicalAppointmentSystem = () => {
                         const startHourIndex = aptHour - 8;
                         const topPx = (startHourIndex * 80) + ((aptMinute / 60) * 80);
                         
-                        // If it's outside our 8am-6pm window, hide it or clamp it
                         if (startHourIndex < 0 || startHourIndex > 10) return null;
 
                         return (
@@ -1333,17 +1367,17 @@ const MedicalAppointmentSystem = () => {
                             key={j} 
                             onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); setShowDetails(true); }}
                             style={{ top: `${topPx}px`, height: '60px' }}
-                            className="absolute left-1 right-1 group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow hover:border-indigo-300 dark:hover:border-indigo-600 rounded-md p-1.5 transition-shadow cursor-pointer z-10 overflow-hidden"
+                            className={cn(
+                              "absolute left-1 right-1 group border border-l-4 shadow-sm rounded-md p-1.5 transition-all cursor-pointer z-10 overflow-hidden flex flex-col justify-center",
+                              getPillStyle(apt.status)
+                            )}
                           >
-                            <div className="absolute top-0 left-0 bottom-0 w-1 bg-indigo-500 rounded-l-md" />
-                            <div className="pl-1.5 flex flex-col justify-center h-full">
-                              <div className="font-semibold text-xs text-zinc-900 dark:text-zinc-100 truncate leading-tight">
-                                {apt.patientName}
-                              </div>
-                              <div className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate flex items-center gap-1">
-                                <Clock className="w-2.5 h-2.5 shrink-0" />
-                                {apt.appointmentTime}
-                              </div>
+                            <div className="font-semibold text-xs truncate leading-tight">
+                              {apt.patientName}
+                            </div>
+                            <div className="text-[10px] mt-0.5 truncate flex items-center gap-1 opacity-80 font-medium">
+                              <Clock className="w-2.5 h-2.5 shrink-0" />
+                              {apt.appointmentTime}
                             </div>
                           </div>
                         );
