@@ -45,7 +45,8 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
         totalRevenue: currentTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
         growth: growth.toFixed(1),
         avgValue: (currentTotal / currentAppointments).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
-        projectedAnnual: (currentTotal * 12).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+        projectedAnnual: (currentTotal * 12).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+        totalAppointments: currentAppointments
       }
     };
   }, [appointments]);
@@ -125,7 +126,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-zinc-400">Total Appointments</p>
-                <h3 className="text-3xl font-bold text-white mt-2">{appointments.length || 190}</h3>
+                <h3 className="text-3xl font-bold text-white mt-2">{kpis.totalAppointments}</h3>
               </div>
               <div className="p-3 bg-white/10 text-white rounded-lg">
                 <Activity className="w-5 h-5" />
