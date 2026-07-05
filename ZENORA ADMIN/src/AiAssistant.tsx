@@ -73,25 +73,31 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
   const speak = (text: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.pitch = 1;
+      // Drop the pitch to mathematically force a deeper, masculine/JARVIS-like voice
+      // This guarantees a male sound even if the PC only has female voices installed.
+      utterance.pitch = 0.7;
       utterance.rate = 1;
       
       // Try to find a good British Male voice (JARVIS style)
       const voices = window.speechSynthesis.getVoices();
-      let preferredVoice = voices.find(v => 
-        v.name.includes('Google UK English Male') || 
-        v.name.includes('Daniel') || 
-        v.name.includes('Arthur') ||
-        v.name.includes('David') ||
-        v.name.includes('Mark') ||
-        v.name.includes('George') ||
-        (v.lang === 'en-GB' && v.name.includes('Male')) ||
-        v.name.includes('Male')
-      );
+      let preferredVoice = voices.find(v => {
+        const name = v.name.toLowerCase();
+        return name.includes('uk english male') || 
+               name.includes('daniel') || 
+               name.includes('arthur') ||
+               name.includes('david') ||
+               name.includes('mark') ||
+               name.includes('george') ||
+               (v.lang === 'en-GB' && name.includes('male')) ||
+               name.includes('male');
+      });
       
       // If none found, aggressively pick any voice that isn't female-sounding
       if (!preferredVoice && voices.length > 0) {
-        preferredVoice = voices.find(v => !v.name.includes('Female') && !v.name.includes('Zira') && !v.name.includes('Samantha') && !v.name.includes('Susan'));
+        preferredVoice = voices.find(v => {
+          const name = v.name.toLowerCase();
+          return !name.includes('female') && !name.includes('zira') && !name.includes('samantha') && !name.includes('susan');
+        });
       }
       
       if (preferredVoice) {
