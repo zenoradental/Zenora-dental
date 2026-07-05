@@ -34,7 +34,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import CommandCenter from './CommandCenter';
-import AiAssistant from './AiAssistant';
+import CommandPalette from './CommandPalette';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -246,6 +246,19 @@ const MedicalAppointmentSystem = () => {
   
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [invoiceData, setInvoiceData] = useState({ patientName: '', doctorName: '', appointmentDate: '' });
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  
+  // Global shortcut for Command Palette
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setIsCommandPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
   
   const isUpdatingRef = useRef(false);
   const lastOptimisticUpdateRef = useRef(0);
@@ -2047,6 +2060,15 @@ const MedicalAppointmentSystem = () => {
           <div className="flex-1" />
           
           <div className="flex items-center gap-2 sm:gap-4">
+            <button
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 text-sm text-zinc-500 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-lg transition-colors"
+            >
+              <Search className="w-4 h-4" />
+              <span>Quick Search...</span>
+              <kbd className="hidden md:inline-flex bg-zinc-200 dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[10px] font-sans font-bold">Ctrl K</kbd>
+            </button>
+
             <div className="relative">
               <button 
                 className="p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors relative"
@@ -2178,30 +2200,19 @@ const MedicalAppointmentSystem = () => {
         </main>
       </div>
 
-      <AiAssistant 
+      <CommandPalette 
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
         appointments={appointments}
         doctors={doctors}
-        onCommand={(command, args) => {
-          if (command === 'filter_priority') {
-            setCurrentPage('appointments');
-            setStatusFilter('priority');
-          } else if (command === 'filter_today') {
-            setCurrentPage('appointments');
-            setDateFilter('today');
-          } else if (command === 'filter_pending') {
-            setCurrentPage('appointments');
-            setStatusFilter('Pending');
-          } else if (command === 'search') {
-            setCurrentPage('appointments');
-            setSearchQuery(args || '');
-          } else if (command === 'navigate') {
-            setCurrentPage(args as any);
-          } else if (command === 'export_csv') {
-            exportToCSV();
-          } else if (command === 'clear_database') {
-            handleClearAppointments();
+        onNavigate={(page) => setCurrentPage(page as any)}
+        onSelectPatient={(id) => {
+          const apt = appointments.find((a: any) => a.id === id || a.appointmentId === id);
+          if (apt) {
+            setSelectedAppointment(apt);
+            setShowDetails(true);
           }
-        }} 
+        }}
       />
 
       {/* Patient Details / Edit Dialog */}
