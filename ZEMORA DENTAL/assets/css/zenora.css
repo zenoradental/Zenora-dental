@@ -9660,7 +9660,7 @@ footer{border-top:3px solid var(--primitive-color--primary-500,#24a3b1);}
 }
 
 @media screen and (min-width: 992px) {
-    .tabs_accordion {
-        min-height: 400px !important;
+    .home-value_image-wrap {
+        min-height: 520px !important;
     }
 }
