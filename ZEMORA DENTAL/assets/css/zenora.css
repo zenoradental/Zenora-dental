@@ -9661,6 +9661,6 @@ footer{border-top:3px solid var(--primitive-color--primary-500,#24a3b1);}
 
 @media screen and (min-width: 992px) {
     .tabs_accordion {
-        min-height: 480px !important;
+        min-height: 400px !important;
     }
 }
