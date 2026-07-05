@@ -17,7 +17,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.interimResults = true;
       recognition.lang = 'en-US';
 
       recognition.onstart = () => {
@@ -26,9 +26,24 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
       };
 
       recognition.onresult = (event: any) => {
-        const result = event.results[0][0].transcript.toLowerCase();
-        setTranscript(result);
-        handleCommand(result);
+        let interim = '';
+        let final = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            final += event.results[i][0].transcript;
+          } else {
+            interim += event.results[i][0].transcript;
+          }
+        }
+
+        if (final) {
+          const result = final.toLowerCase();
+          setTranscript(result);
+          handleCommand(result);
+        } else if (interim) {
+          setTranscript(interim + '...');
+        }
       };
 
       recognition.onerror = (event: any) => {
