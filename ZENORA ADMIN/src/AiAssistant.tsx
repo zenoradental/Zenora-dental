@@ -68,9 +68,15 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
       utterance.pitch = 1;
       utterance.rate = 1;
       
-      // Try to find a good voice
+      // Try to find a good British Male voice (JARVIS style)
       const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(v => v.name.includes('Google UK English Female') || v.name.includes('Samantha') || v.name.includes('Female'));
+      const preferredVoice = voices.find(v => 
+        v.name.includes('Google UK English Male') || 
+        v.name.includes('Daniel') || 
+        v.name.includes('Arthur') ||
+        (v.lang === 'en-GB' && v.name.includes('Male')) ||
+        v.name.includes('Male')
+      );
       if (preferredVoice) {
         utterance.voice = preferredVoice;
       }
