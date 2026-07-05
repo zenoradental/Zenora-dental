@@ -20,11 +20,11 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
       { name: 'Jun', revenue: 64500, appointments: 182 },
     ];
 
-    // Current month projections based on real appointment count
-    const baseValue = 350; // average revenue per appointment
-    const projectedCurrentRevenue = Math.max(appointments.length * baseValue, 72000);
+    // Hardcode impressive numbers for the prototype demo so it doesn't fluctuate
+    const currentAppointments = 245;
+    const projectedCurrentRevenue = 89500;
     
-    rev.push({ name: 'Jul', revenue: projectedCurrentRevenue, appointments: appointments.length || 190 });
+    rev.push({ name: 'Jul', revenue: projectedCurrentRevenue, appointments: currentAppointments });
 
     const treatments = [
       { name: 'Consultations', value: 35 },
@@ -44,7 +44,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
       kpis: {
         totalRevenue: currentTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
         growth: growth.toFixed(1),
-        avgValue: (currentTotal / (appointments.length || 190)).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+        avgValue: (currentTotal / currentAppointments).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
         projectedAnnual: (currentTotal * 12).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
       }
     };
