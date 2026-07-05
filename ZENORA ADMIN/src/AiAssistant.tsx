@@ -126,8 +126,11 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
     if (isListening) {
       recognitionRef.current?.stop();
     } else {
-      recognitionRef.current?.start();
-      speak("Awaiting instructions, Doctor.");
+      try {
+        recognitionRef.current?.start();
+      } catch (e) {
+        console.error("Microphone error", e);
+      }
     }
   };
 
