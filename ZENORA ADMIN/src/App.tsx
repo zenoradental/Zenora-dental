@@ -2903,7 +2903,11 @@ const MedicalAppointmentSystem = () => {
               <div>
                 <h3 className="font-bold text-lg mb-4 text-zinc-900 dark:text-zinc-100">Appointment History</h3>
                 <div className="space-y-4">
-                  {selectedPatient.appointments.map((apt: any) => (
+                  {appointments.filter(a => {
+                    const contact = a.email || a.phone || '';
+                    const name = a.patientName?.trim().toLowerCase() || '';
+                    return `${name}|${contact}` === selectedPatient.id;
+                  }).map((apt: any) => (
                     <Card key={apt.appointmentId} className="border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
                       <div className="bg-slate-50 dark:bg-gray-950 px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                         <div className="flex items-center gap-3">
