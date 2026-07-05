@@ -1704,6 +1704,7 @@ const MedicalAppointmentSystem = () => {
     setAppointments(prev => prev.map(a => 
       a.appointmentId === aptId ? { ...a, stage: newStage } : a
     ));
+    lastOptimisticUpdateRef.current = Date.now();
     
     try {
       const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${aptId}/stage`, {
