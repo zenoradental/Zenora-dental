@@ -277,6 +277,7 @@ const appointmentSchema = new mongoose.Schema({
   appointmentDate: String,
   appointmentTime: String,
   status: { type: String, default: 'Pending' },
+  stage: { type: String, default: 'Waiting Room' },
   address: String,
   medicalHistory: String,
   createdAt: { type: Date, default: Date.now }
@@ -466,6 +467,28 @@ app.post('/api/appointments', async (req, res) => {
   } catch (err) {
     console.error("Fatal error saving appointment:", err);
     res.status(500).json({ error: 'Failed to save appointment', details: err.message });
+  }
+});
+
+// PATCH update appointment stage
+app.patch('/api/appointments/:id/stage', async (req, res) => {
+  try {
+    const { stage } = req.body;
+    
+    const updatedApt = await Appointment.findOneAndUpdate(
+      { appointmentId: req.params.id }, 
+      { stage }, 
+      { new: true }
+    );
+    
+    if (!updatedApt) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    
+    res.json({ success: true, stage });
+  } catch (error) {
+    console.error("Error updating appointment stage:", error);
+    res.status(500).json({ error: 'Failed to update appointment stage' });
   }
 });
 
