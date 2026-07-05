@@ -26,7 +26,8 @@ import {
   Trash2,
   Loader2,
   Edit,
-  Stethoscope
+  Stethoscope,
+  Zap
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -637,6 +638,44 @@ const MedicalAppointmentSystem = () => {
       }
     } catch (err) {
       console.error('Error assigning doctor:', err);
+    } finally {
+      isUpdatingRef.current = false;
+    }
+  };
+
+  const togglePriority = async (appointment: Appointment) => {
+    isUpdatingRef.current = true;
+    lastOptimisticUpdateRef.current = Date.now();
+    
+    const isPriority = appointment.service && appointment.service.toLowerCase().includes('priority');
+    let newService = appointment.service || 'General Checkup';
+    if (isPriority) {
+      newService = newService.replace(/ - Priority/gi, '').replace(/Priority Lead/gi, 'General Checkup').trim();
+    } else {
+      newService = newService === 'General Checkup' ? 'Priority Lead' : `${newService} - Priority`;
+    }
+
+    // Optimistic UI update
+    setAppointments(prev => prev.map(apt => 
+      apt.appointmentId === appointment.appointmentId ? { ...apt, service: newService } : apt
+    ));
+    if (selectedAppointment && selectedAppointment.appointmentId === appointment.appointmentId) {
+      setSelectedAppointment({ ...selectedAppointment, service: newService });
+    }
+
+    try {
+      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointment.appointmentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...appointment, service: newService })
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update priority on server');
+      }
+      showToast(`Marked as ${isPriority ? 'Normal' : 'Priority'}`, 'success');
+    } catch (err) {
+      console.error('Error toggling priority:', err);
+      showToast('Error updating priority', 'error');
     } finally {
       isUpdatingRef.current = false;
     }
@@ -2141,20 +2180,31 @@ const MedicalAppointmentSystem = () => {
           <DialogHeader className="flex flex-row items-center justify-between pr-6">
             <DialogTitle>{isEditingDetails ? 'Edit Appointment Details' : 'Patient Details'}</DialogTitle>
             {selectedAppointment && (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  if (!isEditingDetails) {
-                    setEditForm({ ...selectedAppointment });
-                  }
-                  setIsEditingDetails(!isEditingDetails);
-                }}
-                className="gap-1.5 text-xs font-bold"
-              >
-                <Edit className="h-3.5 w-3.5" />
-                {isEditingDetails ? 'Cancel Edit' : 'Edit Information'}
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant={selectedAppointment.service?.toLowerCase().includes('priority') ? 'default' : 'outline'}
+                  onClick={() => togglePriority(selectedAppointment)}
+                  className={cn("gap-1.5 text-xs font-bold", selectedAppointment.service?.toLowerCase().includes('priority') ? "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400" : "")}
+                >
+                  <Zap className="h-3.5 w-3.5" />
+                  {selectedAppointment.service?.toLowerCase().includes('priority') ? 'Remove Priority' : 'Mark as Priority'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    if (!isEditingDetails) {
+                      setEditForm({ ...selectedAppointment });
+                    }
+                    setIsEditingDetails(!isEditingDetails);
+                  }}
+                  className="gap-1.5 text-xs font-bold"
+                >
+                  <Edit className="h-3.5 w-3.5" />
+                  {isEditingDetails ? 'Cancel Edit' : 'Edit Information'}
+                </Button>
+              </div>
             )}
           </DialogHeader>
           {selectedAppointment && (
