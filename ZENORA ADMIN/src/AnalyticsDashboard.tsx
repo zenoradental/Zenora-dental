@@ -7,6 +7,45 @@ interface AnalyticsProps {
   appointments: any[];
 }
 
+const AnimatedCounter = ({ value, prefix = "", postfix = "", isCurrency = false, isDecimal = false }: { value: number, prefix?: string, postfix?: string, isCurrency?: boolean, isDecimal?: boolean }) => {
+  const [displayValue, setDisplayValue] = React.useState(0);
+
+  React.useEffect(() => {
+    let startTimestamp: number | null = null;
+    const duration = 1500; // 1.5 seconds
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      
+      // easeOutExpo for smooth deceleration
+      const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      
+      setDisplayValue(value * easeProgress);
+
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        setDisplayValue(value);
+      }
+    };
+
+    window.requestAnimationFrame(step);
+  }, [value]);
+
+  const formatted = React.useMemo(() => {
+    if (isCurrency) {
+      return displayValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    if (isDecimal) {
+      return displayValue.toFixed(1);
+    }
+    return Math.round(displayValue).toLocaleString('en-US');
+  }, [displayValue, isCurrency, isDecimal]);
+
+  return <span>{prefix}{formatted}{postfix}</span>;
+};
+
 const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
   // Generate some realistic looking fake revenue data based on appointments
   const { revenueData, treatmentData, kpis } = useMemo(() => {
@@ -46,10 +85,10 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
       revenueData: rev,
       treatmentData: treatments,
       kpis: {
-        totalRevenue: currentTotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+        totalRevenue: currentTotal,
         growth: growth.toFixed(1),
-        avgValue: (currentTotal / currentAppointments).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
-        projectedAnnual: (currentTotal * 12).toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
+        avgValue: currentTotal / currentAppointments,
+        projectedAnnual: currentTotal * 12,
         totalAppointments: currentAppointments
       }
     };
@@ -77,7 +116,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-zinc-500">Total Revenue</p>
-                <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2">{kpis.totalRevenue}</h3>
+                <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.totalRevenue} prefix="$" isCurrency /></h3>
               </div>
               <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
                 <DollarSign className="w-5 h-5" />
@@ -96,7 +135,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-zinc-500">Patient LTV</p>
-                <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2">{kpis.avgValue}</h3>
+                <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.avgValue} prefix="$" isCurrency /></h3>
               </div>
               <div className="p-3 bg-purple-50 text-purple-600 rounded-lg">
                 <Users className="w-5 h-5" />
@@ -113,7 +152,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-zinc-500">Projected ARR</p>
-                <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2">{kpis.projectedAnnual}</h3>
+                <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.projectedAnnual} prefix="$" isCurrency /></h3>
               </div>
               <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
                 <TrendingUp className="w-5 h-5" />
@@ -130,7 +169,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-sm font-medium text-zinc-400">Total Appointments</p>
-                <h3 className="text-3xl font-bold text-white mt-2">{kpis.totalAppointments}</h3>
+                <h3 className="text-3xl font-bold text-white mt-2"><AnimatedCounter value={kpis.totalAppointments} /></h3>
               </div>
               <div className="p-3 bg-white/10 text-white rounded-lg">
                 <Activity className="w-5 h-5" />
