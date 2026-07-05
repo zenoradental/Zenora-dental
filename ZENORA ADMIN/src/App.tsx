@@ -127,6 +127,7 @@ interface Appointment {
   appointmentDate: string;
   appointmentTime: string;
   status: 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
+  stage?: string;
   address?: string;
   medicalHistory?: string;
 }
