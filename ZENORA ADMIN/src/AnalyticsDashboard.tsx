@@ -76,7 +76,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-zinc-500">Monthly Revenue</p>
+                <p className="text-sm font-medium text-zinc-500">Total Revenue</p>
                 <h3 className="text-3xl font-bold text-zinc-900 dark:text-white mt-2">{kpis.totalRevenue}</h3>
               </div>
               <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
