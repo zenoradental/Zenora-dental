@@ -16,26 +16,19 @@ interface Appointment {
   appointmentDate: string;
   appointmentTime: string;
   status: 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled';
+  stage?: string;
 }
 
 interface CommandCenterProps {
   appointments: Appointment[];
   onViewAppointment: (apt: Appointment) => void;
+  onUpdateAppointmentStage: (aptId: string, stage: string) => void;
 }
 
 const STAGES = ['Waiting Room', 'Checkup', 'Treatment', 'Discharged'];
 
-const CommandCenter: React.FC<CommandCenterProps> = ({ appointments, onViewAppointment }) => {
-  const [aptStages, setAptStages] = useState<Record<string, string>>(() => {
-    const saved = localStorage.getItem('zenora_apt_stages');
-    return saved ? JSON.parse(saved) : {};
-  });
-
+const CommandCenter: React.FC<CommandCenterProps> = ({ appointments, onViewAppointment, onUpdateAppointmentStage }) => {
   const [particles, setParticles] = useState<{ id: number, x: number, y: number }[]>([]);
-
-  useEffect(() => {
-    localStorage.setItem('zenora_apt_stages', JSON.stringify(aptStages));
-  }, [aptStages]);
 
   const handleDragStart = (e: React.DragEvent, aptId: string) => {
     e.dataTransfer.setData('aptId', aptId);
@@ -49,7 +42,7 @@ const CommandCenter: React.FC<CommandCenterProps> = ({ appointments, onViewAppoi
     e.preventDefault();
     const aptId = e.dataTransfer.getData('aptId');
     if (aptId) {
-      setAptStages(prev => ({ ...prev, [aptId]: stage }));
+      onUpdateAppointmentStage(aptId, stage);
       
       // Trigger glowing particle effect
       const rect = e.currentTarget.getBoundingClientRect();
@@ -77,7 +70,7 @@ const CommandCenter: React.FC<CommandCenterProps> = ({ appointments, onViewAppoi
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[calc(100vh-200px)] min-h-[600px]">
         {STAGES.map(stage => {
-          const stageApts = todaysAppointments.filter(apt => (aptStages[apt.appointmentId] || 'Waiting Room') === stage);
+          const stageApts = todaysAppointments.filter(apt => (apt.stage || 'Waiting Room') === stage);
           
           return (
             <div 

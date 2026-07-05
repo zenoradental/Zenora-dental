@@ -1699,6 +1699,27 @@ const MedicalAppointmentSystem = () => {
     });
   };
 
+  const handleUpdateAppointmentStage = async (aptId: string, newStage: string) => {
+    // Optimistic update
+    setAppointments(prev => prev.map(a => 
+      (a.appointmentId === aptId || a.id === aptId) ? { ...a, stage: newStage } : a
+    ));
+    
+    try {
+      const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${aptId}/stage`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage: newStage })
+      });
+      if (!res.ok) {
+        console.error("Failed to sync stage update");
+        // We could revert the optimistic update here if desired, but for now we'll just log
+      }
+    } catch (err) {
+      console.error("Network error while updating stage", err);
+    }
+  };
+
   const renderSettings = () => (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
@@ -2028,7 +2049,7 @@ const MedicalAppointmentSystem = () => {
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard': return renderDashboard();
-      case 'command-center': return <CommandCenter appointments={appointments} onViewAppointment={(apt) => { setSelectedAppointment(apt); setShowDetails(true); }} />;
+      case 'command-center': return <CommandCenter appointments={appointments} onViewAppointment={(apt) => { setSelectedAppointment(apt); setShowDetails(true); }} onUpdateAppointmentStage={handleUpdateAppointmentStage} />;
       case 'appointments': return renderAppointments();
       case 'calendar': return renderCalendar();
       case 'analytics': return <AnalyticsDashboard appointments={appointments} />;
