@@ -653,6 +653,9 @@ const MedicalAppointmentSystem = () => {
     let newService = appointment.service || 'General Checkup';
     if (isPriority) {
       newService = newService.replace(/ - Priority/gi, '').replace(/Priority Lead/gi, 'General Checkup').trim();
+      if (newService.toLowerCase().includes('priority') || newService === '') {
+        newService = 'General Checkup';
+      }
     } else {
       newService = newService === 'General Checkup' ? 'Priority Lead' : `${newService} - Priority`;
     }
