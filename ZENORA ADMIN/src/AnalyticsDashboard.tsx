@@ -112,92 +112,92 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
         
         <Card className="border-zinc-200 shadow-sm rounded-xl bg-white dark:bg-zinc-900/50">
-          <CardContent className="p-4 xl:p-6">
+          <CardContent className="p-3 lg:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-zinc-500">All-Time Revenue</p>
-                <h3 className="text-2xl xl:text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.allTimeRevenue} prefix="$" isCurrency /></h3>
+                <p className="text-xs font-medium text-zinc-500">All-Time Revenue</p>
+                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.allTimeRevenue} prefix="$" isCurrency /></h3>
               </div>
-              <div className="p-2 xl:p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                <DollarSign className="w-5 h-5" />
+              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                <DollarSign className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-xs xl:text-sm">
+            <div className="mt-3 flex items-center text-[11px] lg:text-xs">
               <span className="text-zinc-500">Total historical revenue</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-zinc-200 shadow-sm rounded-xl bg-white dark:bg-zinc-900/50">
-          <CardContent className="p-4 xl:p-6">
+          <CardContent className="p-3 lg:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-zinc-500">Monthly Revenue</p>
-                <h3 className="text-2xl xl:text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.totalRevenue} prefix="$" isCurrency /></h3>
+                <p className="text-xs font-medium text-zinc-500">Monthly Revenue</p>
+                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.totalRevenue} prefix="$" isCurrency /></h3>
               </div>
-              <div className="p-2 xl:p-3 bg-blue-50 text-blue-600 rounded-lg">
-                <DollarSign className="w-5 h-5" />
+              <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                <DollarSign className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-xs xl:text-sm">
-              <ArrowUpRight className="w-4 h-4 text-emerald-500 mr-1" />
+            <div className="mt-3 flex items-center text-[11px] lg:text-xs">
+              <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500 mr-1" />
               <span className="text-emerald-500 font-medium">{kpis.growth}%</span>
-              <span className="text-zinc-500 ml-2">vs last month</span>
+              <span className="text-zinc-500 ml-1">vs last month</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-zinc-200 shadow-sm rounded-xl bg-white dark:bg-zinc-900/50">
-          <CardContent className="p-4 xl:p-6">
+          <CardContent className="p-3 lg:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-zinc-500">Patient LTV</p>
-                <h3 className="text-2xl xl:text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.avgValue} prefix="$" isCurrency /></h3>
+                <p className="text-xs font-medium text-zinc-500">Patient LTV</p>
+                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.avgValue} prefix="$" isCurrency /></h3>
               </div>
-              <div className="p-2 xl:p-3 bg-purple-50 text-purple-600 rounded-lg">
-                <Users className="w-5 h-5" />
+              <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
+                <Users className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-xs xl:text-sm">
+            <div className="mt-3 flex items-center text-[11px] lg:text-xs">
               <span className="text-zinc-500">Avg value per appointment</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-zinc-200 shadow-sm rounded-xl bg-white dark:bg-zinc-900/50">
-          <CardContent className="p-4 xl:p-6">
+          <CardContent className="p-3 lg:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-zinc-500">Projected ARR</p>
-                <h3 className="text-2xl xl:text-3xl font-bold text-zinc-900 dark:text-white mt-2"><AnimatedCounter value={kpis.projectedAnnual} prefix="$" isCurrency /></h3>
+                <p className="text-xs font-medium text-zinc-500">Projected ARR</p>
+                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.projectedAnnual} prefix="$" isCurrency /></h3>
               </div>
-              <div className="p-2 xl:p-3 bg-emerald-50 text-emerald-600 rounded-lg">
-                <TrendingUp className="w-5 h-5" />
+              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                <TrendingUp className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-xs xl:text-sm">
+            <div className="mt-3 flex items-center text-[11px] lg:text-xs">
               <span className="text-zinc-500">Annual Run Rate</span>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-zinc-200 shadow-sm rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-800 text-white">
-          <CardContent className="p-4 xl:p-6">
+          <CardContent className="p-3 lg:p-4">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-zinc-400">Total Appointments</p>
-                <h3 className="text-2xl xl:text-3xl font-bold text-white mt-2"><AnimatedCounter value={kpis.totalAppointments} /></h3>
+                <p className="text-xs font-medium text-zinc-400">Total Appointments</p>
+                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-white mt-1.5"><AnimatedCounter value={kpis.totalAppointments} /></h3>
               </div>
-              <div className="p-2 xl:p-3 bg-white/10 text-white rounded-lg">
-                <Activity className="w-5 h-5" />
+              <div className="p-2 bg-white/10 text-white rounded-lg">
+                <Activity className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-xs xl:text-sm">
-              <div className="w-full bg-white/20 rounded-full h-1.5 mt-2">
-                <div className="bg-emerald-400 h-1.5 rounded-full" style={{ width: '85%' }}></div>
+            <div className="mt-3 flex items-center text-[11px] lg:text-xs">
+              <div className="w-full bg-white/20 rounded-full h-1 mt-1">
+                <div className="bg-emerald-400 h-1 rounded-full" style={{ width: '85%' }}></div>
               </div>
             </div>
           </CardContent>
