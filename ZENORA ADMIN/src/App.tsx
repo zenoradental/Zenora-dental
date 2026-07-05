@@ -1268,8 +1268,8 @@ const MedicalAppointmentSystem = () => {
               className={cn(
                 "flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 mx-auto text-base sm:text-lg cursor-pointer rounded-full transition-colors",
                 !isCurrentMonth ? "text-zinc-300 dark:text-zinc-700" : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800",
-                isSelected && isCurrentMonth ? "bg-indigo-600 text-white hover:bg-indigo-700 font-bold shadow-sm" : "",
-                isTodayDate && !isSelected ? "text-indigo-600 font-bold bg-indigo-50 dark:bg-indigo-900/20" : ""
+                isSelected && isCurrentMonth ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 font-bold shadow-sm" : "",
+                isTodayDate && !isSelected ? "text-zinc-900 dark:text-white font-bold bg-zinc-100 dark:bg-zinc-800" : ""
               )}
             >
               {formattedDate}
