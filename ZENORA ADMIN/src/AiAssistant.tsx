@@ -4,9 +4,12 @@ import { Mic, Sparkles } from 'lucide-react';
 
 interface AiAssistantProps {
   onCommand: (command: string, args?: string) => void;
+  appointments?: any[];
+  doctors?: any[];
+  systemSettings?: any;
 }
 
-const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
+const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [], doctors = [], systemSettings = {} }) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any>(null);
@@ -115,6 +118,15 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
   const handleCommand = async (text: string) => {
     let response = '';
 
+    const today = new Date();
+    const localTodayStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const todayApts = appointments.filter(a => a.appointmentDate === localTodayStr);
+    const pendingToday = todayApts.filter(a => a.status === 'Pending').sort((a, b) => {
+      const timeA = new Date(localTodayStr + ' ' + (a.appointmentTime || '')).getTime();
+      const timeB = new Date(localTodayStr + ' ' + (b.appointmentTime || '')).getTime();
+      return timeA - timeB;
+    });
+
     if (text.includes('priority') || text.includes('urgent')) {
       onCommand('filter_priority');
       response = "Certainly. Filtering patient database for high-priority leads immediately.";
@@ -128,10 +140,41 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
     } else if (text.includes('command center') || text.includes('live')) {
       onCommand('navigate', 'command-center');
       response = "Accessing Live Command Center.";
+    } else if (text.includes('export data') || text.includes('download csv') || text.includes('export to csv') || text.includes('download report')) {
+      onCommand('export_csv');
+      response = "I have prepared the CSV export and initiated the download.";
+    } else if (text.includes('clear database') || text.includes('delete all records') || text.includes('wipe data')) {
+      onCommand('clear_database');
+      response = "Warning. You have requested a destructive action. Please confirm the database wipe manually.";
+    } else if (text.includes('show today') || text.includes('appointments for today') || text.includes('schedule for today')) {
+      onCommand('filter_today');
+      response = "Displaying the schedule for today.";
+    } else if (text.includes('show pending') || text.includes('pending appointments')) {
+      onCommand('filter_pending');
+      response = "Filtering the view to show only pending appointments.";
+    } else if (text.includes('who is the next patient') || text.includes('who is next') || text.includes('next patient')) {
+      if (pendingToday.length > 0) {
+        const next = pendingToday[0];
+        response = `Your next patient is ${next.patientName}. They are scheduled for ${next.appointmentTime}. Symptoms reported: ${next.symptoms || 'None specified'}.`;
+      } else {
+        response = "You have no more pending appointments for today.";
+      }
+    } else if (text.includes('how many patients') || text.includes('patients today')) {
+      const priorityCount = todayApts.filter(a => a.service?.toLowerCase().includes('priority')).length;
+      if (todayApts.length === 0) {
+        response = "You currently have no patients scheduled for today.";
+      } else {
+        response = `You have ${todayApts.length} total patients scheduled today. ${priorityCount > 0 ? `${priorityCount} of them are high-priority leads.` : 'There are no priority leads.'} ${pendingToday.length} appointments are still pending.`;
+      }
+    } else if (text.includes('who are our doctors') || text.includes('list doctors')) {
+      if (doctors.length > 0) {
+         const docNames = doctors.map(d => `${d.name}, ${d.specialization}`).join('. ');
+         response = `Our current clinical roster includes: ${docNames}.`;
+      } else {
+         response = "There are no doctors currently registered in the database.";
+      }
     } else if (text.includes('hello') || text.includes('hi')) {
       response = "Zenora Systems online. Good day, Doctor. How may I assist with your clinic operations?";
-    } else if (text.includes('how many patients') || text.includes('patients today')) {
-      response = "Your itinerary indicates multiple scheduled consultations today. Shall I load the Command Center for a comprehensive review?";
     } else if (text.includes('your name') || text.includes('who are you')) {
       response = "I am Zenora AI, a clinical management system engineered to optimize your workflow and patient care.";
     } else {
