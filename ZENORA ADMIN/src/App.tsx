@@ -26,8 +26,9 @@ import {
   Trash2,
   Loader2,
   Edit,
-  Stethoscope,
-  Zap
+  TrendingUp,
+  Zap,
+  Stethoscope
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -35,6 +36,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import CommandCenter from './CommandCenter';
 import CommandPalette from './CommandPalette';
+import AnalyticsDashboard from './AnalyticsDashboard';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -209,7 +211,7 @@ const MedicalAppointmentSystem = () => {
     if (sessionUser) return JSON.parse(sessionUser);
     return null;
   });
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'appointments' | 'patients' | 'doctors' | 'calendar' | 'settings' | 'command-center'>(() => {
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'appointments' | 'patients' | 'doctors' | 'calendar' | 'settings' | 'command-center' | 'analytics'>(() => {
     return (localStorage.getItem('adminCurrentPage') as any) || 'dashboard';
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -808,6 +810,7 @@ const MedicalAppointmentSystem = () => {
     { id: 'patients' as const, label: 'Patients', icon: <Users className="h-4 w-4" /> },
     { id: 'doctors' as const, label: 'Doctors', icon: <User className="h-4 w-4" /> },
     { id: 'calendar' as const, label: 'Calendar', icon: <Calendar className="h-4 w-4" /> },
+    { id: 'analytics' as const, label: 'Analytics', icon: <TrendingUp className="h-4 w-4" /> },
     { id: 'settings' as const, label: 'Settings', icon: <Settings className="h-4 w-4" /> }
   ];
 
@@ -1229,6 +1232,41 @@ const MedicalAppointmentSystem = () => {
       return appointments.filter(apt => apt.appointmentDate === format(day, 'yyyy-MM-dd'));
     };
 
+    const handleDragStart = (e: React.DragEvent, apt: any) => {
+      e.dataTransfer.setData('appointmentId', apt.appointmentId || (apt as any).id);
+      e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = async (e: React.DragEvent, targetDate: Date) => {
+      e.preventDefault();
+      const aptId = e.dataTransfer.getData('appointmentId');
+      if (!aptId) return;
+
+      const dateStr = format(targetDate, 'yyyy-MM-dd');
+      
+      // Optimistic update
+      const updatedAppointments = appointments.map(a => 
+        (a.appointmentId === aptId || (a as any).id === aptId) ? { ...a, appointmentDate: dateStr } : a
+      );
+      setAppointments(updatedAppointments);
+
+      // Attempt to hit the backend
+      try {
+        await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${aptId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentDate: dateStr })
+        });
+      } catch (err) {
+        console.error("Failed to persist date change", err);
+      }
+    };
+
     const getDotColor = (status: string) => {
       switch(status) {
         case 'Pending': return 'bg-amber-500';
@@ -1267,23 +1305,35 @@ const MedicalAppointmentSystem = () => {
                   <div 
                     key={i} 
                     onClick={() => setSelectedDate(day)}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, day)}
                     className={cn(
-                      "min-h-[60px] sm:min-h-[80px] p-1 sm:p-2 border rounded-lg cursor-pointer transition-all flex flex-col",
-                      !isSameMonth(day, monthStart) ? "text-zinc-300 bg-zinc-50" : "bg-white",
-                      isSameDay(day, selectedDate) ? "border-indigo-500 ring-2 ring-indigo-200" : "border-zinc-200 hover:border-indigo-300",
-                      isToday(day) && !isSameDay(day, selectedDate) ? "bg-indigo-50 font-bold" : ""
+                      "min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 border rounded-lg cursor-pointer transition-all flex flex-col",
+                      !isSameMonth(day, monthStart) ? "text-zinc-300 bg-zinc-50 dark:bg-zinc-900" : "bg-white dark:bg-zinc-950",
+                      isSameDay(day, selectedDate) ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900" : "border-zinc-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-indigo-700",
+                      isToday(day) && !isSameDay(day, selectedDate) ? "bg-indigo-50 dark:bg-indigo-950 font-bold" : ""
                     )}
                   >
-                    <div className="flex justify-between items-start">
-                      <span className={cn("text-xs sm:text-sm font-medium", isSameDay(day, selectedDate) ? "text-indigo-600" : "")}>
+                    <div className="flex justify-between items-start mb-1">
+                      <span className={cn("text-xs sm:text-sm font-medium", isSameDay(day, selectedDate) ? "text-indigo-600 dark:text-indigo-400" : "")}>
                         {format(day, "d")}
                       </span>
                     </div>
-                    <div className="mt-auto pt-1 flex flex-wrap gap-1">
-                      {dayApts.slice(0, 3).map((apt, j) => (
-                        <div key={j} className={cn("w-2 h-2 rounded-full", getDotColor(apt.status))}></div>
+                    <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                      {dayApts.map((apt, j) => (
+                        <div 
+                          key={j} 
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, apt)}
+                          onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); }}
+                          className={cn(
+                            "text-[10px] sm:text-xs truncate px-1.5 py-0.5 rounded border border-transparent hover:border-zinc-300 transition-colors shadow-sm",
+                            getDotColor(apt.status).replace('bg-', 'bg-opacity-20 text-').replace('500', '700') + " " + getDotColor(apt.status).replace('bg-', 'border-').replace('500', '200')
+                          )}
+                        >
+                          {apt.appointmentTime} - {apt.patientName}
+                        </div>
                       ))}
-                      {dayApts.length > 3 && <span className="text-[10px] text-zinc-500 leading-none">+{dayApts.length - 3}</span>}
                     </div>
                   </div>
                 );
@@ -1873,6 +1923,7 @@ const MedicalAppointmentSystem = () => {
       case 'command-center': return <CommandCenter appointments={appointments} onViewAppointment={(apt) => { setSelectedAppointment(apt); setShowDetails(true); }} />;
       case 'appointments': return renderAppointments();
       case 'calendar': return renderCalendar();
+      case 'analytics': return <AnalyticsDashboard appointments={appointments} />;
       case 'patients': return renderPatients();
       case 'doctors': return renderDoctors();
       case 'settings': return renderSettings();
