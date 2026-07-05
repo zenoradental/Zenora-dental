@@ -180,38 +180,54 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [],
       response = "I can manage your appointments, export patient data, and provide live schedule summaries. You can ask me 'who is the next patient?', 'how many patients today?', or tell me to 'export data' or 'show pending appointments'.";
     } else if (text.includes('about zenora') || text.includes('what is zenora') || text.includes('about this dashboard') || text.includes('what is this dashboard') || text.includes('tell me about the dashboard')) {
       response = "Zenora Admin is your clinic's central operating system. It provides a real-time Command Center, patient scheduling, and automated workflows to streamline your dental practice.";
+    } else if (text.includes('open appointments') || text.includes('go to appointments') || text.includes('appointments tab') || text.includes('show appointments')) {
+      onCommand('navigate', 'appointments');
+      response = "Opening the Appointments tab.";
+    } else if (text.includes('open patients') || text.includes('go to patients') || text.includes('patients tab')) {
+      onCommand('navigate', 'patients');
+      response = "Opening the Patients database.";
+    } else if (text.includes('open doctors') || text.includes('go to doctors') || text.includes('doctors tab') || text.includes('show doctors')) {
+      onCommand('navigate', 'doctors');
+      response = "Opening the Doctors directory.";
+    } else if (text.includes('open settings') || text.includes('go to settings') || text.includes('settings tab')) {
+      onCommand('navigate', 'settings');
+      response = "Opening system settings.";
     } else {
-      // Try to be smart and answer general or medical questions!
-      try {
-        let query = text.replace(/what is|who is|tell me about|explain|do you know/gi, '').trim();
-        query = query.replace(/^(a|an|the)\s+/i, '').trim();
-        
-        if (query.length > 2) {
-          // 1. Search Wikipedia for the best matching article title
-          const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json&origin=*`);
-          if (searchRes.ok) {
-            const searchData = await searchRes.json();
-            if (searchData.query?.search?.length > 0) {
-              const exactTitle = searchData.query.search[0].title;
-              
-              // 2. Fetch the summary for that exact title
-              const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(exactTitle)}`);
-              if (res.ok) {
-                const data = await res.json();
-                if (data.extract) {
-                  // Get the first sentence for a concise AI response
-                  response = data.extract.split('. ')[0] + ".";
+      // Only hit Wikipedia if it looks like a general knowledge question
+      const isQuestion = /(what is|who is|tell me about|explain|do you know|what are)/i.test(text);
+      
+      if (isQuestion) {
+        try {
+          let query = text.replace(/what is|who is|tell me about|explain|do you know|what are/gi, '').trim();
+          query = query.replace(/^(a|an|the)\s+/i, '').trim();
+          
+          if (query.length > 2) {
+            // 1. Search Wikipedia for the best matching article title
+            const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json&origin=*`);
+            if (searchRes.ok) {
+              const searchData = await searchRes.json();
+              if (searchData.query?.search?.length > 0) {
+                const exactTitle = searchData.query.search[0].title;
+                
+                // 2. Fetch the summary for that exact title
+                const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(exactTitle)}`);
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data.extract) {
+                    // Get the first sentence for a concise AI response
+                    response = data.extract.split('. ')[0] + ".";
+                  }
                 }
               }
             }
           }
+        } catch (e) {
+          console.error("Wikipedia API failed", e);
         }
-      } catch (e) {
-        console.error("Wikipedia API failed", e);
       }
       
       if (!response) {
-        response = "I could not find clinical records or reference data matching your query, Doctor. Please specify a valid directive.";
+        response = "I could not find clinical records or reference data matching your query, Doctor. Please specify a valid directive. You can ask me to open tabs, manage appointments, or tell me 'what can you do' for a list of features.";
       }
     }
 
