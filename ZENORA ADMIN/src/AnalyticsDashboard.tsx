@@ -20,11 +20,15 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
       { name: 'Jun', revenue: 64500, appointments: 182 },
     ];
 
-    // Hardcode impressive numbers for the prototype demo so it doesn't fluctuate
-    const currentAppointments = 245;
-    const projectedCurrentRevenue = 89500;
+    // Make current month dynamic based on the actual appointments data!
+    // We assume an average patient value of ~$365 for the prototype math.
+    const currentAppointments = appointments.length;
+    const projectedCurrentRevenue = currentAppointments * 365;
     
-    rev.push({ name: 'Jul', revenue: projectedCurrentRevenue, appointments: currentAppointments });
+    // Get the current month name (e.g., 'Jul')
+    const currentMonthName = new Date().toLocaleString('default', { month: 'short' });
+    
+    rev.push({ name: currentMonthName, revenue: projectedCurrentRevenue, appointments: currentAppointments });
 
     const treatments = [
       { name: 'Consultations', value: 35 },
