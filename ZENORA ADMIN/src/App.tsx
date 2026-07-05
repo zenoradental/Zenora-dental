@@ -2181,7 +2181,6 @@ const MedicalAppointmentSystem = () => {
       <AiAssistant 
         appointments={appointments}
         doctors={doctors}
-        systemSettings={systemSettings}
         onCommand={(command, args) => {
           if (command === 'filter_priority') {
             setCurrentPage('appointments');
