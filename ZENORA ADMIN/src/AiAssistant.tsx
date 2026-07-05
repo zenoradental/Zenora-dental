@@ -158,7 +158,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [],
       } else {
         response = "You have no more pending appointments for today.";
       }
-    } else if (text.includes('how many patients') || text.includes('patients today')) {
+    } else if (text.includes('how many patients') || text.includes('patients today') || text.includes('how many appointments') || text.includes('appointments today')) {
       const priorityCount = todayApts.filter(a => a.service?.toLowerCase().includes('priority')).length;
       if (todayApts.length === 0) {
         response = "You currently have no patients scheduled for today.";
