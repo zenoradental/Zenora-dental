@@ -33,6 +33,8 @@ import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import CommandCenter from './CommandCenter';
+import AiAssistant from './AiAssistant';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -207,7 +209,7 @@ const MedicalAppointmentSystem = () => {
     if (sessionUser) return JSON.parse(sessionUser);
     return null;
   });
-  const [currentPage, setCurrentPage] = useState<'dashboard' | 'appointments' | 'patients' | 'doctors' | 'calendar' | 'settings'>(() => {
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'appointments' | 'patients' | 'doctors' | 'calendar' | 'settings' | 'command-center'>(() => {
     return (localStorage.getItem('adminCurrentPage') as any) || 'dashboard';
   });
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -784,6 +786,7 @@ const MedicalAppointmentSystem = () => {
 
   const navItems = [
     { id: 'dashboard' as const, label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
+    { id: 'command-center' as const, label: 'Command Center', icon: <Activity className="h-4 w-4" /> },
     { id: 'appointments' as const, label: 'Appointments', icon: <Calendar className="h-4 w-4" /> },
     { id: 'patients' as const, label: 'Patients', icon: <Users className="h-4 w-4" /> },
     { id: 'doctors' as const, label: 'Doctors', icon: <User className="h-4 w-4" /> },
@@ -1850,6 +1853,7 @@ const MedicalAppointmentSystem = () => {
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard': return renderDashboard();
+      case 'command-center': return <CommandCenter appointments={appointments} onViewAppointment={(apt) => { setSelectedAppointment(apt); setShowDetails(true); }} />;
       case 'appointments': return renderAppointments();
       case 'calendar': return renderCalendar();
       case 'patients': return renderPatients();
@@ -2170,6 +2174,18 @@ const MedicalAppointmentSystem = () => {
           {renderContent()}
         </main>
       </div>
+
+      <AiAssistant onCommand={(command, args) => {
+        if (command === 'filter_priority') {
+          setCurrentPage('appointments');
+          setStatusFilter('priority');
+        } else if (command === 'search') {
+          setCurrentPage('appointments');
+          setSearchQuery(args || '');
+        } else if (command === 'navigate') {
+          setCurrentPage(args as any);
+        }
+      }} />
 
       {/* Patient Details / Edit Dialog */}
       <Dialog open={showDetails} onOpenChange={(val) => {
