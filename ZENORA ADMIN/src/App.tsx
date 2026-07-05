@@ -251,8 +251,9 @@ const MedicalAppointmentSystem = () => {
   // Global shortcut for Command Palette
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.ctrlKey || e.metaKey)) {
+      if ((e.key === ' ' || e.code === 'Space') && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
+        e.stopPropagation();
         setIsCommandPaletteOpen(prev => !prev);
       }
     };
@@ -2066,7 +2067,7 @@ const MedicalAppointmentSystem = () => {
             >
               <Search className="w-4 h-4" />
               <span>Quick Search...</span>
-              <kbd className="hidden md:inline-flex bg-zinc-200 dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[10px] font-sans font-bold">Ctrl K</kbd>
+              <kbd className="hidden md:inline-flex bg-zinc-200 dark:bg-zinc-900 px-1.5 py-0.5 rounded text-[10px] font-sans font-bold">Ctrl Space</kbd>
             </button>
 
             <div className="relative">
