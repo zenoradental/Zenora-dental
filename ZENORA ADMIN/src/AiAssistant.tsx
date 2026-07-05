@@ -216,6 +216,9 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [],
     }
 
     if (response) {
+      if (recognitionRef.current && isListening) {
+         recognitionRef.current.stop();
+      }
       speak(response);
     }
   };
