@@ -132,9 +132,9 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                     <div className="space-y-1">
                       {matchingAppointments.map((apt) => (
                         <button
-                          key={apt.id}
+                          key={apt.appointmentId || apt.id}
                           onClick={() => {
-                            onSelectPatient(apt.id);
+                            onSelectPatient(apt.appointmentId || apt.id);
                             onClose();
                           }}
                           className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors group text-left"
