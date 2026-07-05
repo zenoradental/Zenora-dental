@@ -30,7 +30,9 @@ import {
   Zap,
   Stethoscope,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CheckCircle2,
+  CalendarDays
 } from 'lucide-react';
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -1286,20 +1288,20 @@ const MedicalAppointmentSystem = () => {
       }
       
       return (
-        <div className="w-full">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">{format(currentMonth, 'MMMM yyyy')}</h3>
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}><ChevronLeft className="h-5 w-5" /></Button>
-              <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}><ChevronRight className="h-5 w-5" /></Button>
+        <div className="w-full max-w-4xl mx-auto">
+          <div className="flex justify-between items-center mb-8 px-2">
+            <h3 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight">{format(currentMonth, 'MMMM yyyy')}</h3>
+            <div className="flex gap-2 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-full border border-zinc-200 dark:border-zinc-800 shadow-inner">
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}><ChevronLeft className="h-5 w-5" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-white dark:hover:bg-zinc-800 hover:shadow-sm transition-all" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}><ChevronRight className="h-5 w-5" /></Button>
             </div>
           </div>
           <div className="grid grid-cols-7 gap-2 sm:gap-4 mb-4">
             {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(d => (
-              <div key={d} className="text-center text-sm font-semibold text-zinc-500 uppercase tracking-widest hidden sm:block">{d}</div>
+              <div key={d} className="text-center text-sm font-bold text-zinc-400 uppercase tracking-widest hidden sm:block">{d}</div>
             ))}
             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
-              <div key={d} className="text-center text-sm font-semibold text-zinc-500 uppercase tracking-widest sm:hidden">{d}</div>
+              <div key={d} className="text-center text-sm font-bold text-zinc-400 uppercase tracking-widest sm:hidden">{d}</div>
             ))}
           </div>
           {rows}
@@ -1321,15 +1323,46 @@ const MedicalAppointmentSystem = () => {
         </div>
 
         <div className="flex flex-col gap-6 items-start">
-          {/* Sidebar */}
-          <Card className="w-full shrink-0 p-6 sm:p-8 lg:p-10 border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-zinc-950">
+          {/* Header Card */}
+          <Card className="w-full shrink-0 p-6 sm:p-8 lg:p-12 border-zinc-200 dark:border-zinc-800 shadow-sm rounded-2xl bg-white dark:bg-zinc-950">
             {renderMiniCalendar()}
-            <hr className="my-8 border-zinc-200 dark:border-zinc-800" />
-            <h4 className="text-sm font-bold text-zinc-400 mb-6 uppercase tracking-widest">Today's Overview</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-               <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-900 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800"><span className="text-zinc-600 dark:text-zinc-400 font-medium">Total Appointments</span><span className="font-bold text-2xl">{dailyAppointments.length}</span></div>
-               <div className="flex justify-between items-center bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/20"><span className="text-amber-700 dark:text-amber-500 font-medium">Pending</span><span className="font-bold text-amber-600 dark:text-amber-500 text-2xl">{dailyAppointments.filter(a => a.status === 'Pending').length}</span></div>
-               <div className="flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/20"><span className="text-emerald-700 dark:text-emerald-500 font-medium">Completed</span><span className="font-bold text-emerald-600 dark:text-emerald-500 text-2xl">{dailyAppointments.filter(a => a.status === 'Completed').length}</span></div>
+            <div className="max-w-4xl mx-auto w-full">
+              <hr className="my-10 border-zinc-200 dark:border-zinc-800" />
+              <div className="flex items-center gap-2 mb-6">
+                <Activity className="h-5 w-5 text-zinc-400" />
+                <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">Today's Overview</h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
+                 <div className="flex items-center justify-between bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/50 p-5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                   <div className="flex flex-col">
+                     <span className="text-zinc-500 dark:text-zinc-400 font-semibold text-sm uppercase tracking-wider mb-1">Total Appointments</span>
+                     <span className="font-extrabold text-3xl text-zinc-900 dark:text-white">{dailyAppointments.length}</span>
+                   </div>
+                   <div className="h-12 w-12 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm border border-zinc-100 dark:border-zinc-700">
+                     <CalendarDays className="h-6 w-6 text-zinc-700 dark:text-zinc-300" />
+                   </div>
+                 </div>
+                 
+                 <div className="flex items-center justify-between bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10 p-5 rounded-2xl border border-amber-200/50 dark:border-amber-900/30 shadow-sm">
+                   <div className="flex flex-col">
+                     <span className="text-amber-700 dark:text-amber-500 font-semibold text-sm uppercase tracking-wider mb-1">Pending</span>
+                     <span className="font-extrabold text-3xl text-amber-600 dark:text-amber-500">{dailyAppointments.filter(a => a.status === 'Pending').length}</span>
+                   </div>
+                   <div className="h-12 w-12 rounded-full bg-white/60 dark:bg-amber-900/40 flex items-center justify-center shadow-sm border border-amber-100 dark:border-amber-900/50">
+                     <Clock className="h-6 w-6 text-amber-600 dark:text-amber-500" />
+                   </div>
+                 </div>
+                 
+                 <div className="flex items-center justify-between bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-900/10 p-5 rounded-2xl border border-emerald-200/50 dark:border-emerald-900/30 shadow-sm">
+                   <div className="flex flex-col">
+                     <span className="text-emerald-700 dark:text-emerald-500 font-semibold text-sm uppercase tracking-wider mb-1">Completed</span>
+                     <span className="font-extrabold text-3xl text-emerald-600 dark:text-emerald-500">{dailyAppointments.filter(a => a.status === 'Completed').length}</span>
+                   </div>
+                   <div className="h-12 w-12 rounded-full bg-white/60 dark:bg-emerald-900/40 flex items-center justify-center shadow-sm border border-emerald-100 dark:border-emerald-900/50">
+                     <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-500" />
+                   </div>
+                 </div>
+              </div>
             </div>
           </Card>
 
