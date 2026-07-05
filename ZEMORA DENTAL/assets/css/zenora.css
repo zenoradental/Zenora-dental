@@ -4480,8 +4480,7 @@ figure {
 
 .home-value_image-wrap {
   width: var(--_max-width---max-width--100);
-  height: auto;
-  aspect-ratio: 1 / 1.1;
+  height: var(--_max-width---max-width--100);
   border-radius: var(--_size-variables---border-radius--2xl);
   overflow: hidden;
 }
