@@ -35,7 +35,7 @@ const AnimatedCounter = ({ value, prefix = "", postfix = "", isCurrency = false,
 
   const formatted = React.useMemo(() => {
     if (isCurrency) {
-      return displayValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return displayValue.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     }
     if (isDecimal) {
       return displayValue.toFixed(1);
@@ -119,7 +119,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-medium text-zinc-500">All-Time Revenue</p>
-                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.allTimeRevenue} prefix="$" isCurrency /></h3>
+                <h3 className="text-lg xl:text-xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.allTimeRevenue} prefix="$" isCurrency /></h3>
               </div>
               <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
                 <DollarSign className="w-4 h-4" />
@@ -136,7 +136,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-medium text-zinc-500">Monthly Revenue</p>
-                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.totalRevenue} prefix="$" isCurrency /></h3>
+                <h3 className="text-lg xl:text-xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.totalRevenue} prefix="$" isCurrency /></h3>
               </div>
               <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
                 <DollarSign className="w-4 h-4" />
@@ -155,7 +155,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-medium text-zinc-500">Patient LTV</p>
-                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.avgValue} prefix="$" isCurrency /></h3>
+                <h3 className="text-lg xl:text-xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.avgValue} prefix="$" isCurrency /></h3>
               </div>
               <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
                 <Users className="w-4 h-4" />
@@ -172,7 +172,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-medium text-zinc-500">Projected ARR</p>
-                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.projectedAnnual} prefix="$" isCurrency /></h3>
+                <h3 className="text-lg xl:text-xl tracking-tight font-bold text-zinc-900 dark:text-white mt-1.5"><AnimatedCounter value={kpis.projectedAnnual} prefix="$" isCurrency /></h3>
               </div>
               <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
                 <TrendingUp className="w-4 h-4" />
@@ -189,7 +189,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs font-medium text-zinc-400">Total Appointments</p>
-                <h3 className="text-xl lg:text-2xl tracking-tight font-bold text-white mt-1.5"><AnimatedCounter value={kpis.totalAppointments} /></h3>
+                <h3 className="text-lg xl:text-xl tracking-tight font-bold text-white mt-1.5"><AnimatedCounter value={kpis.totalAppointments} /></h3>
               </div>
               <div className="p-2 bg-white/10 text-white rounded-lg">
                 <Activity className="w-4 h-4" />
