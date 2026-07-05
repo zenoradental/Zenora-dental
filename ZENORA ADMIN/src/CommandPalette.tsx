@@ -98,7 +98,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search patients, appointments, or doctors... (Ctrl+Q)"
+              placeholder="Search patients, appointments, or doctors... (Ctrl+Space)"
               className="flex-1 bg-transparent border-none outline-none text-lg text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
             />
             <div className="flex items-center gap-1 text-xs font-medium text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md">

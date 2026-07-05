@@ -253,7 +253,7 @@ const MedicalAppointmentSystem = () => {
   // Global shortcut for Command Palette
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === 'q' || e.key === 'Q') && (e.ctrlKey || e.metaKey)) {
+      if ((e.key === ' ' || e.code === 'Space') && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         e.stopPropagation();
         setIsCommandPaletteOpen(prev => !prev);
