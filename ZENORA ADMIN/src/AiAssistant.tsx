@@ -18,7 +18,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [],
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
 
