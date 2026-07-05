@@ -1244,11 +1244,11 @@ const MedicalAppointmentSystem = () => {
 
     const getPillStyle = (status: string) => {
       switch(status) {
-        case 'Pending': return 'bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-100 border-l-amber-500';
-        case 'Confirmed': return 'bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 border-blue-200 dark:border-blue-500/30 text-blue-900 dark:text-blue-100 border-l-blue-500';
-        case 'Completed': return 'bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-100 border-l-emerald-500';
-        case 'Cancelled': return 'bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 border-red-200 dark:border-red-500/30 text-red-900 dark:text-red-100 border-l-red-500 opacity-60';
-        default: return 'bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-500/10 dark:hover:bg-zinc-500/20 border-zinc-200 dark:border-zinc-500/30 text-zinc-900 dark:text-zinc-100 border-l-zinc-500';
+        case 'Pending': return 'bg-amber-100/90 hover:bg-amber-200 dark:bg-amber-500/20 dark:hover:bg-amber-500/30 border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-100 border-l-amber-500 shadow-sm';
+        case 'Confirmed': return 'bg-blue-100/90 hover:bg-blue-200 dark:bg-blue-500/20 dark:hover:bg-blue-500/30 border-blue-300 dark:border-blue-500/40 text-blue-900 dark:text-blue-100 border-l-blue-500 shadow-sm';
+        case 'Completed': return 'bg-emerald-100/90 hover:bg-emerald-200 dark:bg-emerald-500/20 dark:hover:bg-emerald-500/30 border-emerald-300 dark:border-emerald-500/40 text-emerald-900 dark:text-emerald-100 border-l-emerald-500 shadow-sm';
+        case 'Cancelled': return 'bg-red-50/90 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 border-red-200 dark:border-red-500/30 text-red-900 dark:text-red-100 border-l-red-500 opacity-70';
+        default: return 'bg-zinc-100/90 hover:bg-zinc-200 dark:bg-zinc-500/20 dark:hover:bg-zinc-500/30 border-zinc-300 dark:border-zinc-500/40 text-zinc-900 dark:text-zinc-100 border-l-zinc-500 shadow-sm';
       }
     };
 
@@ -1271,16 +1271,17 @@ const MedicalAppointmentSystem = () => {
         <div className="grid grid-cols-1 gap-6">
           <Card className="overflow-hidden border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-zinc-950 flex flex-col h-[700px]">
             {/* Header: Days */}
-            <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/80 dark:bg-zinc-900/80 pr-[14px]">
-              <div className="py-2.5 flex items-center justify-center text-[10px] font-semibold text-zinc-400 uppercase tracking-wider border-r border-zinc-200 dark:border-zinc-800 shrink-0">
-                Time
+            {/* Header: Days */}
+            <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md sticky top-0 z-30 pr-[14px]">
+              <div className="py-3 flex items-end justify-end pr-2 border-r border-zinc-200 dark:border-zinc-800 shrink-0">
+                <span className="text-[10px] font-medium text-zinc-400">GMT</span>
               </div>
               {days.map(day => (
-                <div key={day.toISOString()} className="py-2 flex flex-col items-center justify-center border-l border-transparent">
-                  <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">{format(day, 'EEE')}</span>
+                <div key={day.toISOString()} className="py-3 flex flex-col items-center justify-center border-l border-transparent">
+                  <span className="text-[11px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">{format(day, 'EEE')}</span>
                   <span className={cn(
-                    "text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full mt-0.5",
-                    isToday(day) ? "bg-indigo-600 text-white shadow-sm" : "text-zinc-900 dark:text-zinc-100"
+                    "text-xl font-light w-9 h-9 flex items-center justify-center rounded-full transition-colors",
+                    isToday(day) ? "bg-indigo-600 text-white font-medium shadow-md" : "text-zinc-900 dark:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   )}>
                     {format(day, 'd')}
                   </span>
@@ -1292,10 +1293,10 @@ const MedicalAppointmentSystem = () => {
             <div className="flex-1 overflow-y-auto custom-scrollbar relative">
               <div className="grid grid-cols-[60px_1fr_1fr_1fr_1fr_1fr_1fr_1fr] min-w-max w-full pt-3">
                 {/* Time Axis */}
-                <div className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/50 sticky left-0 z-20 shrink-0">
+                <div className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 sticky left-0 z-20 shrink-0">
                   {hours.map(hour => (
-                    <div key={hour} className="h-[80px] relative">
-                      <span className="absolute -top-[9px] right-2 text-[10px] font-medium text-zinc-400 bg-white dark:bg-zinc-950/50 px-1 z-10">
+                    <div key={hour} className="h-[80px] relative w-full flex justify-end">
+                      <span className="absolute -top-[10px] right-2 text-[11px] font-medium text-zinc-400 bg-transparent px-1 z-10 text-right">
                         {format(new Date().setHours(hour, 0), 'h a')}
                       </span>
                     </div>
@@ -1334,9 +1335,9 @@ const MedicalAppointmentSystem = () => {
                       {hours.map(hour => (
                         <div 
                           key={hour} 
-                          className="h-[80px] border-b border-zinc-100 dark:border-zinc-800/50 transition-colors relative group/cell"
+                          className="h-[80px] border-b border-zinc-200 dark:border-zinc-800 transition-colors relative group/cell"
                         >
-                          <div className="absolute top-1/2 left-0 right-0 border-b border-dashed border-zinc-100 dark:border-zinc-800/30" />
+                          <div className="absolute top-1/2 left-0 right-0 border-b border-dashed border-zinc-200 dark:border-zinc-800" />
                         </div>
                       ))}
                       
