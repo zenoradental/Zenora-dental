@@ -1277,6 +1277,16 @@ const MedicalAppointmentSystem = () => {
       }
     };
 
+    const getPillStyle = (status: string) => {
+      switch(status) {
+        case 'Pending': return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800/50';
+        case 'Confirmed': return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800/50';
+        case 'Completed': return 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800/50';
+        case 'Cancelled': return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800/50';
+        default: return 'bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700';
+      }
+    };
+
     return (
       <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -1308,18 +1318,23 @@ const MedicalAppointmentSystem = () => {
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, day)}
                     className={cn(
-                      "min-h-[80px] sm:min-h-[100px] p-1 sm:p-2 border rounded-lg cursor-pointer transition-all flex flex-col",
-                      !isSameMonth(day, monthStart) ? "text-zinc-300 bg-zinc-50 dark:bg-zinc-900" : "bg-white dark:bg-zinc-950",
-                      isSameDay(day, selectedDate) ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900" : "border-zinc-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-indigo-700",
-                      isToday(day) && !isSameDay(day, selectedDate) ? "bg-indigo-50 dark:bg-indigo-950 font-bold" : ""
+                      "min-h-[120px] sm:min-h-[140px] p-2 sm:p-3 border rounded-xl cursor-pointer transition-all flex flex-col",
+                      !isSameMonth(day, monthStart) ? "text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/50" : "bg-white dark:bg-zinc-950",
+                      isSameDay(day, selectedDate) ? "border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900" : "border-zinc-200 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md",
+                      isToday(day) && !isSameDay(day, selectedDate) ? "bg-indigo-50/50 dark:bg-indigo-950/50 font-bold" : ""
                     )}
                   >
-                    <div className="flex justify-between items-start mb-1">
-                      <span className={cn("text-xs sm:text-sm font-medium", isSameDay(day, selectedDate) ? "text-indigo-600 dark:text-indigo-400" : "")}>
+                    <div className="flex justify-between items-start mb-2">
+                      <span className={cn("text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full", isToday(day) ? "bg-indigo-600 text-white" : isSameDay(day, selectedDate) ? "text-indigo-600 dark:text-indigo-400" : "")}>
                         {format(day, "d")}
                       </span>
+                      {dayApts.length > 0 && (
+                        <span className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
+                          {dayApts.length} apt{dayApts.length > 1 ? 's' : ''}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex-1 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                       {dayApts.map((apt, j) => (
                         <div 
                           key={j} 
@@ -1327,11 +1342,17 @@ const MedicalAppointmentSystem = () => {
                           onDragStart={(e) => handleDragStart(e, apt)}
                           onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); }}
                           className={cn(
-                            "text-[10px] sm:text-xs truncate px-1.5 py-0.5 rounded border border-transparent hover:border-zinc-300 transition-colors shadow-sm",
-                            getDotColor(apt.status).replace('bg-', 'bg-opacity-20 text-').replace('500', '700') + " " + getDotColor(apt.status).replace('bg-', 'border-').replace('500', '200')
+                            "group relative flex flex-col p-1.5 rounded-lg border transition-all hover:scale-[1.02] shadow-sm hover:shadow active:scale-95 active:shadow-none",
+                            getPillStyle(apt.status)
                           )}
                         >
-                          {apt.appointmentTime} - {apt.patientName}
+                          <div className="font-semibold text-xs truncate leading-tight">
+                            {apt.patientName}
+                          </div>
+                          <div className="text-[10px] opacity-80 mt-0.5 flex items-center gap-1">
+                            <Clock className="w-2.5 h-2.5 inline" />
+                            {apt.appointmentTime}
+                          </div>
                         </div>
                       ))}
                     </div>
