@@ -4486,7 +4486,9 @@ figure {
 }
 
 .home-value_image {
-  height: var(--_max-width---max-width--100);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .tabs-accordion_menu {
