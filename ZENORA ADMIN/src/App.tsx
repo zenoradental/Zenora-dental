@@ -202,7 +202,46 @@ const StatsCardComponent = ({
   );
 };
 
-const sampleAppointments: Appointment[] = [];
+const generateSampleAppointments = (): Appointment[] => {
+  const appointments: Appointment[] = [];
+  const firstNames = ["James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda", "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica", "Thomas", "Sarah", "Charles", "Karen"];
+  const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"];
+  const services = ["Consultation", "Root Canal", "Whitening", "Implants", "Cleaning", "Checkup", "Extraction", "Braces"];
+  const statuses = ["Pending", "Confirmed", "Completed", "Cancelled"];
+  const doctors = ["Dr. Sarah Jenkins", "Dr. Michael Chen", "Dr. Emily Rodriguez", "Dr. James Wilson"];
+
+  // Always keep a few specific appointments for today's dashboard view if needed
+  const today = new Date();
+  
+  for (let i = 0; i < 245; i++) {
+    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+    
+    // Distribute dates mostly over the current month
+    const date = new Date(today);
+    date.setDate(today.getDate() - Math.floor(Math.random() * 30));
+    
+    appointments.push({
+      appointmentId: `APT-${Math.floor(Math.random() * 90000) + 10000}`,
+      patientName: `${firstName} ${lastName}`,
+      age: Math.floor(Math.random() * 60) + 18,
+      gender: Math.random() > 0.5 ? 'Male' : 'Female',
+      phone: `+1 (555) ${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 9000) + 1000}`,
+      email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${Math.floor(Math.random() * 100)}@example.com`,
+      service: services[Math.floor(Math.random() * services.length)],
+      symptoms: "Patient requested appointment online.",
+      doctor: doctors[Math.floor(Math.random() * doctors.length)],
+      appointmentDate: date.toISOString().split('T')[0],
+      appointmentTime: `${Math.floor(Math.random() * 8) + 9}:00 ${Math.random() > 0.5 ? 'AM' : 'PM'}`,
+      status: statuses[Math.floor(Math.random() * statuses.length)] as any,
+    });
+  }
+  
+  // Sort by date descending
+  return appointments.sort((a, b) => new Date(b.appointmentDate).getTime() - new Date(a.appointmentDate).getTime());
+};
+
+const sampleAppointments: Appointment[] = generateSampleAppointments();
 
 const MedicalAppointmentSystem = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
