@@ -180,16 +180,16 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [],
       response = "I can manage your appointments, export patient data, and provide live schedule summaries. You can ask me 'who is the next patient?', 'how many patients today?', or tell me to 'export data' or 'show pending appointments'.";
     } else if (text.includes('about zenora') || text.includes('what is zenora') || text.includes('about this dashboard') || text.includes('what is this dashboard') || text.includes('tell me about the dashboard')) {
       response = "Zenora Admin is your clinic's central operating system. It provides a real-time Command Center, patient scheduling, and automated workflows to streamline your dental practice.";
-    } else if (text.includes('open appointments') || text.includes('go to appointments') || text.includes('appointments tab') || text.includes('show appointments')) {
+    } else if (/(open|go to|show)\s+(the\s+)?appointments?\s*(tab)?/i.test(text)) {
       onCommand('navigate', 'appointments');
       response = "Opening the Appointments tab.";
-    } else if (text.includes('open patients') || text.includes('go to patients') || text.includes('patients tab')) {
+    } else if (/(open|go to|show)\s+(the\s+)?patients?\s*(database|tab)?/i.test(text)) {
       onCommand('navigate', 'patients');
       response = "Opening the Patients database.";
-    } else if (text.includes('open doctors') || text.includes('go to doctors') || text.includes('doctors tab') || text.includes('show doctors')) {
+    } else if (/(open|go to|show)\s+(the\s+)?doctors?\s*(directory|tab)?/i.test(text)) {
       onCommand('navigate', 'doctors');
       response = "Opening the Doctors directory.";
-    } else if (text.includes('open settings') || text.includes('go to settings') || text.includes('settings tab')) {
+    } else if (/(open|go to|show)\s+(the\s+)?settings?\s*(tab)?/i.test(text)) {
       onCommand('navigate', 'settings');
       response = "Opening system settings.";
     } else {
