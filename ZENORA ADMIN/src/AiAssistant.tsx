@@ -91,7 +91,7 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
     }
   };
 
-  const handleCommand = (text: string) => {
+  const handleCommand = async (text: string) => {
     let response = '';
 
     if (text.includes('priority') || text.includes('urgent')) {
@@ -114,7 +114,26 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
     } else if (text.includes('your name') || text.includes('who are you')) {
       response = "I am Zenora AI, a clinical management system engineered to optimize your workflow and patient care.";
     } else {
-      response = "Command not recognized within current operational parameters. Please specify a valid clinic management directive.";
+      // Try to be smart and answer general or medical questions!
+      try {
+        const query = text.replace(/what is|who is|tell me about|explain/gi, '').trim();
+        if (query.length > 2) {
+          const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.extract) {
+              // Get the first sentence for a concise AI response
+              response = data.extract.split('. ')[0] + ".";
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Wikipedia API failed", e);
+      }
+      
+      if (!response) {
+        response = "I could not find clinical records or reference data matching your query, Doctor. Please specify a valid directive.";
+      }
     }
 
     if (response) {
