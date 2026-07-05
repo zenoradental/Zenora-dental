@@ -116,14 +116,26 @@ const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand }) => {
     } else {
       // Try to be smart and answer general or medical questions!
       try {
-        const query = text.replace(/what is|who is|tell me about|explain/gi, '').trim();
+        let query = text.replace(/what is|who is|tell me about|explain|do you know/gi, '').trim();
+        query = query.replace(/^(a|an|the)\s+/i, '').trim();
+        
         if (query.length > 2) {
-          const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.extract) {
-              // Get the first sentence for a concise AI response
-              response = data.extract.split('. ')[0] + ".";
+          // 1. Search Wikipedia for the best matching article title
+          const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json&origin=*`);
+          if (searchRes.ok) {
+            const searchData = await searchRes.json();
+            if (searchData.query?.search?.length > 0) {
+              const exactTitle = searchData.query.search[0].title;
+              
+              // 2. Fetch the summary for that exact title
+              const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(exactTitle)}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.extract) {
+                  // Get the first sentence for a concise AI response
+                  response = data.extract.split('. ')[0] + ".";
+                }
+              }
             }
           }
         }
