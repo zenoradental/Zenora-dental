@@ -6,10 +6,9 @@ interface AiAssistantProps {
   onCommand: (command: string, args?: string) => void;
   appointments?: any[];
   doctors?: any[];
-  systemSettings?: any;
 }
 
-const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [], doctors = [], systemSettings = {} }) => {
+const AiAssistant: React.FC<AiAssistantProps> = ({ onCommand, appointments = [], doctors = [] }) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef<any>(null);
