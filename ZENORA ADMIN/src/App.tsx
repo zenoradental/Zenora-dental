@@ -1266,7 +1266,7 @@ const MedicalAppointmentSystem = () => {
               key={day.toISOString()} 
               onClick={() => { setSelectedDate(cloneDay); setCurrentMonth(cloneDay); }}
               className={cn(
-                "flex items-center justify-center h-8 w-8 text-sm cursor-pointer rounded-full transition-colors",
+                "flex items-center justify-center h-12 w-12 sm:h-14 sm:w-14 mx-auto text-base sm:text-lg cursor-pointer rounded-full transition-colors",
                 !isCurrentMonth ? "text-zinc-300 dark:text-zinc-700" : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800",
                 isSelected && isCurrentMonth ? "bg-indigo-600 text-white hover:bg-indigo-700 font-bold shadow-sm" : "",
                 isTodayDate && !isSelected ? "text-indigo-600 font-bold bg-indigo-50 dark:bg-indigo-900/20" : ""
@@ -1287,16 +1287,19 @@ const MedicalAppointmentSystem = () => {
       
       return (
         <div className="w-full">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-zinc-900 dark:text-zinc-100">{format(currentMonth, 'MMMM yyyy')}</h3>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}><ChevronLeft className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}><ChevronRight className="h-4 w-4" /></Button>
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">{format(currentMonth, 'MMMM yyyy')}</h3>
+            <div className="flex gap-2">
+              <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}><ChevronLeft className="h-5 w-5" /></Button>
+              <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}><ChevronRight className="h-5 w-5" /></Button>
             </div>
           </div>
-          <div className="grid grid-cols-7 gap-1 mb-2">
+          <div className="grid grid-cols-7 gap-2 sm:gap-4 mb-4">
+            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(d => (
+              <div key={d} className="text-center text-sm font-semibold text-zinc-500 uppercase tracking-widest hidden sm:block">{d}</div>
+            ))}
             {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
-              <div key={d} className="text-center text-xs font-semibold text-zinc-400">{d}</div>
+              <div key={d} className="text-center text-sm font-semibold text-zinc-500 uppercase tracking-widest sm:hidden">{d}</div>
             ))}
           </div>
           {rows}
@@ -1317,16 +1320,16 @@ const MedicalAppointmentSystem = () => {
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col gap-6 items-start">
           {/* Sidebar */}
-          <Card className="w-full lg:w-[320px] shrink-0 p-5 border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-zinc-950">
+          <Card className="w-full shrink-0 p-6 sm:p-8 lg:p-10 border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-zinc-950">
             {renderMiniCalendar()}
-            <hr className="my-6 border-zinc-200 dark:border-zinc-800" />
-            <h4 className="text-xs font-bold text-zinc-400 mb-4 uppercase tracking-widest">Today's Overview</h4>
-            <div className="space-y-4">
-               <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-900 p-3 rounded-lg"><span className="text-zinc-600 dark:text-zinc-400 font-medium">Total Appointments</span><span className="font-bold text-lg">{dailyAppointments.length}</span></div>
-               <div className="flex justify-between items-center bg-amber-50 dark:bg-amber-900/10 p-3 rounded-lg"><span className="text-amber-700 dark:text-amber-500 font-medium">Pending</span><span className="font-bold text-amber-600 dark:text-amber-500 text-lg">{dailyAppointments.filter(a => a.status === 'Pending').length}</span></div>
-               <div className="flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/10 p-3 rounded-lg"><span className="text-emerald-700 dark:text-emerald-500 font-medium">Completed</span><span className="font-bold text-emerald-600 dark:text-emerald-500 text-lg">{dailyAppointments.filter(a => a.status === 'Completed').length}</span></div>
+            <hr className="my-8 border-zinc-200 dark:border-zinc-800" />
+            <h4 className="text-sm font-bold text-zinc-400 mb-6 uppercase tracking-widest">Today's Overview</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+               <div className="flex justify-between items-center bg-zinc-50 dark:bg-zinc-900 p-4 rounded-xl border border-zinc-100 dark:border-zinc-800"><span className="text-zinc-600 dark:text-zinc-400 font-medium">Total Appointments</span><span className="font-bold text-2xl">{dailyAppointments.length}</span></div>
+               <div className="flex justify-between items-center bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/20"><span className="text-amber-700 dark:text-amber-500 font-medium">Pending</span><span className="font-bold text-amber-600 dark:text-amber-500 text-2xl">{dailyAppointments.filter(a => a.status === 'Pending').length}</span></div>
+               <div className="flex justify-between items-center bg-emerald-50 dark:bg-emerald-900/10 p-4 rounded-xl border border-emerald-100 dark:border-emerald-900/20"><span className="text-emerald-700 dark:text-emerald-500 font-medium">Completed</span><span className="font-bold text-emerald-600 dark:text-emerald-500 text-2xl">{dailyAppointments.filter(a => a.status === 'Completed').length}</span></div>
             </div>
           </Card>
 
