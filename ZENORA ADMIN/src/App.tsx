@@ -1232,46 +1232,6 @@ const MedicalAppointmentSystem = () => {
       return appointments.filter(apt => apt.appointmentDate === dateStr);
     };
 
-    const handleDragStart = (e: React.DragEvent, apt: any) => {
-      e.dataTransfer.setData('appointmentId', apt.appointmentId || apt.id);
-      e.dataTransfer.effectAllowed = 'move';
-    };
-
-    const handleDragOver = (e: React.DragEvent) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-    };
-
-    const handleDrop = async (e: React.DragEvent, targetDate: Date, targetHour: number) => {
-      e.preventDefault();
-      const aptId = e.dataTransfer.getData('appointmentId');
-      if (!aptId) return;
-
-      const dateStr = format(targetDate, 'yyyy-MM-dd');
-      
-      // Convert 24h targetHour to 12h format (e.g., 14 -> "02:00 PM")
-      const timeStr = format(new Date().setHours(targetHour, 0, 0, 0), 'hh:mm a');
-      
-      // Optimistic update
-      const updatedAppointments = appointments.map(a => 
-        (a.appointmentId === aptId || (a as any).id === aptId) 
-          ? { ...a, appointmentDate: dateStr, appointmentTime: timeStr } 
-          : a
-      );
-      setAppointments(updatedAppointments);
-
-      // Attempt to hit the backend
-      try {
-        await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${aptId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ appointmentDate: dateStr, appointmentTime: timeStr })
-        });
-      } catch (err) {
-        console.error("Failed to persist date/time change", err);
-      }
-    };
-
     const getDotColor = (status: string) => {
       switch(status) {
         case 'Pending': return 'bg-amber-500';
@@ -1341,8 +1301,6 @@ const MedicalAppointmentSystem = () => {
                         <div 
                           key={hour} 
                           className="h-[80px] border-b border-zinc-100 dark:border-zinc-800/50 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900/50"
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, day, hour)}
                         />
                       ))}
                       
@@ -1373,11 +1331,9 @@ const MedicalAppointmentSystem = () => {
                         return (
                           <div 
                             key={j} 
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, apt)}
-                            onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); }}
+                            onClick={(e) => { e.stopPropagation(); setSelectedAppointment(apt); setShowDetails(true); }}
                             style={{ top: `${topPx}px`, height: '60px' }}
-                            className="absolute left-1 right-1 group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow hover:border-indigo-300 dark:hover:border-indigo-600 rounded-md p-1.5 transition-shadow cursor-grab active:cursor-grabbing z-10 overflow-hidden"
+                            className="absolute left-1 right-1 group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 shadow-sm hover:shadow hover:border-indigo-300 dark:hover:border-indigo-600 rounded-md p-1.5 transition-shadow cursor-pointer z-10 overflow-hidden"
                           >
                             <div className="absolute top-0 left-0 bottom-0 w-1 bg-indigo-500 rounded-l-md" />
                             <div className="pl-1.5 flex flex-col justify-center h-full">
