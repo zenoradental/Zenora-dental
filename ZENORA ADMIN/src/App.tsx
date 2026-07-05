@@ -1702,7 +1702,7 @@ const MedicalAppointmentSystem = () => {
   const handleUpdateAppointmentStage = async (aptId: string, newStage: string) => {
     // Optimistic update
     setAppointments(prev => prev.map(a => 
-      (a.appointmentId === aptId || a.id === aptId) ? { ...a, stage: newStage } : a
+      a.appointmentId === aptId ? { ...a, stage: newStage } : a
     ));
     
     try {
