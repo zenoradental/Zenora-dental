@@ -9661,6 +9661,8 @@ footer{border-top:3px solid var(--primitive-color--primary-500,#24a3b1);}
 
 @media screen and (min-width: 992px) {
     .home-value_image-wrap {
-        min-height: 520px !important;
+        height: auto !important;
+        aspect-ratio: 4 / 3 !important;
+        min-height: unset !important;
     }
 }
