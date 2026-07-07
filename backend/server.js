@@ -1061,9 +1061,39 @@ app.get(/^\/admin(?:\/.*)?$/, (req, res) => {
   res.sendFile(path.join(__dirname, '../ZEMORA DENTAL/admin/index.html'));
 });
 
-const PORT = process.env.PORT || 3001;
+// --- TEMPORARY INBOUND EMAIL SYSTEM FOR GOOGLE VERIFICATION ---
+let latestReceivedEmail = "No emails received yet. Waiting for Google...";
+
+app.post('/api/inbound', express.json(), (req, res) => {
+  console.log("INBOUND EMAIL RECEIVED:", req.body);
+  try {
+    // Resend sends the email in req.body.text or req.body.html
+    const textContent = req.body.text || JSON.stringify(req.body);
+    latestReceivedEmail = textContent;
+    console.log("Saved email content to memory!");
+  } catch (error) {
+    console.error("Error parsing inbound email", error);
+  }
+  res.status(200).send('OK');
+});
+
+app.get('/api/read-email', (req, res) => {
+  res.send(`
+    <html>
+      <body style="font-family: sans-serif; padding: 2rem;">
+        <h2>Latest Received Email:</h2>
+        <pre style="background: #f4f4f4; padding: 1rem; border-radius: 8px; white-space: pre-wrap;">${latestReceivedEmail}</pre>
+        <br/>
+        <button onclick="window.location.reload()">Refresh Page</button>
+      </body>
+    </html>
+  `);
+});
+// -----------------------------------------------------------
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
 
 // Export the app for Vercel Serverless Functions
