@@ -2,9 +2,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const nodemailer = require('nodemailer');
 
 const testEmail = process.env.SMTP_USER === 'resend' ? process.env.SMTP_FROM_EMAIL : process.env.SMTP_USER;
-const fromAddress = process.env.SMTP_USER === 'resend' 
-  ? 'onboarding@resend.dev' 
-  : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+const fromAddress = process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>';
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_USER === 'resend' ? 'smtp.resend.com' : (process.env.SMTP_HOST || 'smtp.gmail.com'),
