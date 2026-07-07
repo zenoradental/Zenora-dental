@@ -1054,201 +1054,6 @@ app.use(express.static(path.join(__dirname, '../ZEMORA DENTAL'), {
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     }
   }
-} catch (err) {
-    res.status(500).json({ error: 'Failed to create admin' });
-  }
-});
-
-// DELETE /api/admins/:id
-app.delete('/api/admins/:id', async (req, res) => {
-  try {
-    if (req.params.id === 'ADM0001') {
-      return res.status(403).json({ error: 'Cannot delete the primary Master Admin' });
-    }
-    const admin = await Admin.findOne({ id: req.params.id });
-    if (!admin) {
-      return res.status(404).json({ error: 'Admin not found' });
-    }
-    
-    if (admin.role === 'Master Admin') {
-      return res.status(403).json({ error: 'Cannot delete a Master Admin' });
-    }
-    
-    await Admin.deleteOne({ id: req.params.id });
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete admin' });
-  }
-});
-
-// PATCH /api/admins/:id/role
-app.patch('/api/admins/:id/role', async (req, res) => {
-  try {
-    const { role } = req.body;
-    if (req.params.id === 'ADM0001') {
-      return res.status(403).json({ error: 'Cannot change the role of the primary Master Admin' });
-    }
-    
-    const admin = await Admin.findOne({ id: req.params.id });
-    if (!admin) {
-      return res.status(404).json({ error: 'Admin not found' });
-    }
-    
-    admin.role = role;
-    await admin.save();
-    
-    res.json({ success: true, admin: { id: admin.id, email: admin.email, role: admin.role } });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update admin role' });
-  }
-});
-
-// PATCH /api/admins/:id/password
-app.patch('/api/admins/:id/password', async (req, res) => {
-  try {
-    const { password } = req.body;
-    if (!password) {
-      return res.status(400).json({ error: 'Password is required' });
-    }
-    
-    const admin = await Admin.findOne({ id: req.params.id });
-    if (!admin) {
-      return res.status(404).json({ error: 'Admin not found' });
-    }
-    
-    if (admin.role === 'Master Admin' || req.params.id === 'ADM0001') {
-      return res.status(403).json({ error: 'Standard users cannot change the password for Master Admin accounts.' });
-    }
-    
-    admin.password = password;
-    await admin.save();
-    
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to reset password' });
-  }
-});
-
-
-
-// GET /api/settings
-app.get('/api/settings', async (req, res) => {
-  try {
-    const settings = await Setting.findOne().lean();
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.json(settings || { maintenanceMode: false, pauseBookings: false });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to read settings' });
-  }
-});
-
-// PATCH /api/settings
-app.patch('/api/settings', async (req, res) => {
-  try {
-    const { maintenanceMode, pauseBookings } = req.body;
-    let settings = await Setting.findOne();
-    if (!settings) {
-      settings = new Setting();
-    }
-    
-    if (maintenanceMode !== undefined) settings.maintenanceMode = maintenanceMode;
-    if (pauseBookings !== undefined) settings.pauseBookings = pauseBookings;
-    
-    await settings.save();
-    res.json({ success: true, settings });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update settings' });
-  }
-});
-
-// GET /api/doctors
-app.get('/api/doctors', async (req, res) => {
-  try {
-    const doctors = await Doctor.find().select('-_id -__v').lean();
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.json(doctors);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to read doctors' });
-  }
-});
-
-// POST /api/doctors
-app.post('/api/doctors', async (req, res) => {
-  try {
-    const { name, specialization, status, phone, email } = req.body;
-    if (!name || !specialization) {
-      return res.status(400).json({ error: 'Name and specialization are required' });
-    }
-    
-    const newDoctor = new Doctor({
-      id: 'DOC' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
-      name,
-      specialization,
-      status: status || 'Available',
-      phone: phone || '',
-      email: email || ''
-    });
-    
-    await newDoctor.save();
-    
-    const responseDoc = {
-      id: newDoctor.id, name: newDoctor.name, specialization: newDoctor.specialization,
-      status: newDoctor.status, phone: newDoctor.phone, email: newDoctor.email
-    };
-    
-    res.status(201).json({ success: true, doctor: responseDoc });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to add doctor' });
-  }
-});
-
-// PATCH /api/doctors/:id
-app.patch('/api/doctors/:id', async (req, res) => {
-  try {
-    const updates = req.body;
-    
-    const doctor = await Doctor.findOneAndUpdate(
-      { id: req.params.id },
-      updates,
-      { new: true }
-    );
-    
-    if (!doctor) {
-      return res.status(404).json({ error: 'Doctor not found' });
-    }
-    
-    const responseDoc = {
-      id: doctor.id, name: doctor.name, specialization: doctor.specialization,
-      status: doctor.status, phone: doctor.phone, email: doctor.email
-    };
-    
-    res.json({ success: true, doctor: responseDoc });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update doctor' });
-  }
-});
-
-// DELETE /api/doctors/:id
-app.delete('/api/doctors/:id', async (req, res) => {
-  try {
-    const doctor = await Doctor.findOneAndDelete({ id: req.params.id });
-    if (!doctor) {
-      return res.status(404).json({ error: 'Doctor not found' });
-    }
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete doctor' });
-  }
-});
-
-// Serve static files from the dental website
-app.use(express.static(path.join(__dirname, '../ZEMORA DENTAL'), {
-  maxAge: 0,
-  setHeaders: (res, reqPath) => {
-    if (reqPath.match(/\.(html|css|js)$/)) {
-      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    }
-  }
 }));
 
 // Fallback for Admin SPA routing
@@ -1261,12 +1066,16 @@ app.post('/api/inbound', express.json(), async (req, res) => {
   console.log("INBOUND EMAIL RECEIVED:", req.body);
   try {
     const textContent = req.body.text || JSON.stringify(req.body);
-    // Save directly to MongoDB collection to bypass Vercel stateless memory
-    await mongoose.connection.db.collection('inbound_emails').insertOne({
-      content: textContent,
-      createdAt: new Date()
-    });
-    console.log("Saved email content to MongoDB!");
+    const db = mongoose.connection.db;
+    if (db) {
+      await db.collection('inbound_emails').insertOne({
+        content: textContent,
+        createdAt: new Date()
+      });
+      console.log("Saved email content to MongoDB!");
+    } else {
+      console.error("Database connection not ready yet");
+    }
   } catch (error) {
     console.error("Error parsing inbound email", error);
   }
@@ -1275,8 +1084,11 @@ app.post('/api/inbound', express.json(), async (req, res) => {
 
 app.get('/api/read-email', async (req, res) => {
   try {
-    const latestEmail = await mongoose.connection.db.collection('inbound_emails')
-      .findOne({}, { sort: { createdAt: -1 } });
+    const db = mongoose.connection.db;
+    if (!db) {
+      return res.send("Database connection is waking up... refresh in a few seconds!");
+    }
+    const latestEmail = await db.collection('inbound_emails').findOne({}, { sort: { createdAt: -1 } });
       
     const displayContent = latestEmail ? latestEmail.content : "No emails received yet. Waiting for Google...";
     
@@ -1291,7 +1103,7 @@ app.get('/api/read-email', async (req, res) => {
       </html>
     `);
   } catch (err) {
-    res.send("Database connection error or still starting up...");
+    res.send("Database connection error or still starting up... refresh again!");
   }
 });
 // -----------------------------------------------------------
