@@ -120,11 +120,11 @@ async function sendEmailReliably(mailOptions) {
 
 
 
-const calendarIcon = `<img src="https://zenoradentalofficial.vercel.app/assets/img/gen_icon-calendar.png" alt="Calendar" style="width: 24px; height: 24px; display: block; border: 0;" />`;
-const doctorIcon = `<img src="https://zenoradentalofficial.vercel.app/assets/img/gen_icon-user.png" alt="Doctor" style="width: 24px; height: 24px; display: block; border: 0;" />`;
-const clockIcon = `<img src="https://zenoradentalofficial.vercel.app/assets/img/gen_icon-clock.png" alt="Clock" style="width: 24px; height: 24px; display: block; border: 0;" />`;
-const toothIcon = `<img src="https://zenoradentalofficial.vercel.app/assets/img/gen_icon-tooth.png" alt="Tooth" style="width: 24px; height: 24px; display: block; border: 0;" />`;
-const infoIcon = `<img src="https://zenoradentalofficial.vercel.app/assets/img/gen_icon-info.png" alt="Info" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const calendarIcon = `<img src="https://www.whitefoxofficial.space/assets/img/gen_icon-calendar.png" alt="Calendar" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const doctorIcon = `<img src="https://www.whitefoxofficial.space/assets/img/gen_icon-user.png" alt="Doctor" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const clockIcon = `<img src="https://www.whitefoxofficial.space/assets/img/gen_icon-clock.png" alt="Clock" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const toothIcon = `<img src="https://www.whitefoxofficial.space/assets/img/gen_icon-tooth.png" alt="Tooth" style="width: 24px; height: 24px; display: block; border: 0;" />`;
+const infoIcon = `<img src="https://www.whitefoxofficial.space/assets/img/gen_icon-info.png" alt="Info" style="width: 24px; height: 24px; display: block; border: 0;" />`;
 
 const generateEmailHTML = (title, patientName, paragraphs, highlights, cta, iconSvg, postHighlightsParagraphs = []) => {
   const defaultIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 24px; height: 24px;"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>`;
@@ -471,7 +471,7 @@ app.post('/api/appointments', async (req, res) => {
             { label: 'Time', value: appointmentRecord.appointmentTime },
             { label: 'Service', value: appointmentRecord.service || 'General Checkup' }
           ],
-          { text: 'Check Appointment Status', url: `${process.env.FRONTEND_URL || 'https://zenoradentalofficial.vercel.app'}/check-status.html` },
+          { text: 'Check Appointment Status', url: `${process.env.FRONTEND_URL || 'https://www.whitefoxofficial.space'}/check-status.html` },
           calendarIcon
         )
       };
