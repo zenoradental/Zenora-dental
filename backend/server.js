@@ -215,9 +215,7 @@ app.get('/api/test-email-diagnostic', async (req, res) => {
   }
   try {
     // Attempt to send a test email
-    const fromAddress = process.env.SMTP_USER === 'resend' 
-        ? 'onboarding@resend.dev' 
-        : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+    const fromAddress = process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>';
         
       const info = await sendEmailReliably({
         from: fromAddress,
@@ -428,9 +426,7 @@ app.post('/api/appointments', async (req, res) => {
     
     // Send email notification reliably before ending request
     if ((transporter || fallbackTransporter) && appointmentRecord.email) {
-      const fromAddress = process.env.SMTP_USER === 'resend' 
-        ? 'onboarding@resend.dev' 
-        : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+      const fromAddress = process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>';
         
       const mailOptions = {
         from: fromAddress,
@@ -509,9 +505,7 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
     
     // Send email notification for status change
     if ((transporter || fallbackTransporter) && updatedApt.email) {
-      const fromAddress = process.env.SMTP_USER === 'resend' 
-        ? 'onboarding@resend.dev' 
-        : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+      const fromAddress = process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>';
         
       let subject = `Appointment Status Updated - Zenora Dental`;
       let htmlBody = generateEmailHTML(
@@ -585,9 +579,7 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
 
     // Send email notification for doctor assignment
     if ((transporter || fallbackTransporter) && updatedApt.email && doctor !== 'Unassigned') {
-      const fromAddress = process.env.SMTP_USER === 'resend' 
-        ? 'onboarding@resend.dev' 
-        : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+      const fromAddress = process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>';
           
       const mailOptions = {
         from: fromAddress,
@@ -675,9 +667,7 @@ app.put('/api/appointments/:id', async (req, res) => {
 
     // Send email notification if date, time, or doctor was updated
     if ((dateChanged || timeChanged || doctorChanged) && (transporter || fallbackTransporter) && updatedApt.email) {
-      const fromAddress = process.env.SMTP_USER === 'resend' 
-        ? 'onboarding@resend.dev' 
-        : (process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>');
+      const fromAddress = process.env.SMTP_FROM_EMAIL || '"Zenora Dental" <noreply@zenoradental.com>';
         
       const changeDescriptions = [];
       if (dateChanged) changeDescriptions.push(`<strong>Date:</strong> <s>${existingApt.appointmentDate}</s> &rarr; <strong style="color: #111827;">${updatedApt.appointmentDate}</strong>`);
