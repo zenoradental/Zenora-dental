@@ -67,6 +67,31 @@ const setupTransporter = async () => {
 setupTransporter();
 
 async function sendEmailReliably(mailOptions) {
+  if (process.env.SMTP_USER === 'resend') {
+    try {
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.SMTP_PASS}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: mailOptions.from,
+          to: mailOptions.to,
+          subject: mailOptions.subject,
+          html: mailOptions.html,
+          text: mailOptions.text
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Resend API Error');
+      console.log('Email sent successfully via Resend API: %s', data.id);
+      return { messageId: data.id };
+    } catch (err) {
+      console.error('Resend API dispatch failed:', err.message || err);
+      throw err;
+    }
+  }
 
   if (!transporter && !fallbackTransporter) {
     console.warn('Email sending skipped: No SMTP credentials configured.');
