@@ -632,26 +632,44 @@
         overflow: hidden !important;
     }
 
-    /* Force consistent height for Our Story images on mobile */
-    .our-story_item-image_wrap {
+    /* Separate Image and Text on Mobile, allow natural aspect ratio */
+    .our-story_item {
+        width: 85vw !important;
+        max-width: 350px !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        margin-right: 16px !important;
+        flex-direction: column-reverse !important; /* Image on top, text on bottom */
+        background-color: var(--primitive-color--primary-900) !important;
+    }
+
+    .our-story_item-content {
         position: relative !important;
-        height: 240px !important;
+        height: auto !important;
+        padding: 24px !important;
+        box-sizing: border-box !important;
         width: 100% !important;
-        overflow: hidden !important;
+        background-image: none !important; /* Remove gradient overlay */
         flex: none !important;
     }
 
+    .our-story_item-image_wrap {
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        inset: auto !important;
+        flex: none !important;
+        display: block !important;
+    }
+    
     .our-story_item-image,
     .home-value_image,
     .feature-blog_image {
         width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-        object-position: center center !important;
-    }
-
-    /* Swap order so image is above text on mobile */
-    .our-story_item {
-        flex-direction: column-reverse !important;
+        height: auto !important;
+        object-fit: contain !important;
+        object-position: top center !important;
+        display: block !important;
     }
 }
