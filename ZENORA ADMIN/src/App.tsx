@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 console.log("CACHE BUSTER 1");
 import { format, startOfWeek, endOfWeek, isToday, parse, startOfMonth, endOfMonth, isSameMonth, isSameDay, addDays, subMonths, addMonths } from 'date-fns';
 import customLogo from './assets/favicon.svg';
+import { Analytics } from "@vercel/analytics/react";
 import { 
   Bell, 
   Calendar,
@@ -188,7 +189,7 @@ const StatsCardComponent = ({
           <AnimatedValue value={currentValue} prefix={valuePrefix} postfix={valuePostfix} />
         </div>
         <p className="text-xs text-zinc-500 mt-1">{description}</p>
-        <div className="h-[60px] mt-4 flex items-end justify-between gap-1">
+        <div className="h-15 mt-4 flex items-end justify-between gap-1">
           {chartData.map((item, i) => (
             <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
               <div
@@ -992,7 +993,7 @@ const MedicalAppointmentSystem = () => {
                 { value: 'Completed', label: 'Completed' },
                 { value: 'Cancelled', label: 'Cancelled' }
               ]}>
-                <SelectTrigger className="w-full sm:w-[180px] rounded-lg border-zinc-200">
+                <SelectTrigger className="w-full sm:w-45 rounded-lg border-zinc-200">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1010,7 +1011,7 @@ const MedicalAppointmentSystem = () => {
                 { value: 'week', label: 'This Week' },
                 { value: 'month', label: 'This Month' }
               ]}>
-                <SelectTrigger className="w-full sm:w-[180px] rounded-lg border-zinc-200">
+                <SelectTrigger className="w-full sm:w-45 rounded-lg border-zinc-200">
                   <SelectValue placeholder="All Dates" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1026,7 +1027,7 @@ const MedicalAppointmentSystem = () => {
                 { value: 'oldest', label: 'Oldest First' },
                 { value: 'name', label: 'Name (A-Z)' }
               ]}>
-                <SelectTrigger className="w-full sm:w-[180px] rounded-lg border-zinc-200">
+                <SelectTrigger className="w-full sm:w-45 rounded-lg border-zinc-200">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1113,7 +1114,7 @@ const MedicalAppointmentSystem = () => {
                         {(apt.service && apt.service.toLowerCase().includes('priority')) || apt.gender === 'Not specified' || apt.gender === 'Not Specified' ? '-' : (apt.gender || '-')}
                       </TableCell>
                     )}
-                    <TableCell className="text-zinc-500 font-medium text-zinc-900">{apt.phone}</TableCell>
+                    <TableCell className="font-medium">{apt.phone}</TableCell>
                     <TableCell className="text-zinc-500">{apt.doctor || 'Unassigned'}</TableCell>
                     <TableCell className="text-zinc-500">{apt.appointmentDate}</TableCell>
                     <TableCell className="text-zinc-500">{apt.appointmentTime}</TableCell>
@@ -1334,7 +1335,7 @@ const MedicalAppointmentSystem = () => {
                 <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest">Today's Overview</h4>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6">
-                 <div className="flex items-center justify-between bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/50 p-5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
+                 <div className="flex items-center justify-between bg-linear-to-br from-zinc-50 to-zinc-100 dark:from-zinc-900 dark:to-zinc-900/50 p-5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800 shadow-sm">
                    <div className="flex flex-col">
                      <span className="text-zinc-500 dark:text-zinc-400 font-semibold text-sm uppercase tracking-wider mb-1">Total Appointments</span>
                      <span className="font-extrabold text-3xl text-zinc-900 dark:text-white">{dailyAppointments.length}</span>
@@ -1344,7 +1345,7 @@ const MedicalAppointmentSystem = () => {
                    </div>
                  </div>
                  
-                 <div className="flex items-center justify-between bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10 p-5 rounded-2xl border border-amber-200/50 dark:border-amber-900/30 shadow-sm">
+                 <div className="flex items-center justify-between bg-linear-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-900/10 p-5 rounded-2xl border border-amber-200/50 dark:border-amber-900/30 shadow-sm">
                    <div className="flex flex-col">
                      <span className="text-amber-700 dark:text-amber-500 font-semibold text-sm uppercase tracking-wider mb-1">Pending</span>
                      <span className="font-extrabold text-3xl text-amber-600 dark:text-amber-500">{dailyAppointments.filter(a => a.status === 'Pending').length}</span>
@@ -1354,7 +1355,7 @@ const MedicalAppointmentSystem = () => {
                    </div>
                  </div>
                  
-                 <div className="flex items-center justify-between bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-900/10 p-5 rounded-2xl border border-emerald-200/50 dark:border-emerald-900/30 shadow-sm">
+                 <div className="flex items-center justify-between bg-linear-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-900/10 p-5 rounded-2xl border border-emerald-200/50 dark:border-emerald-900/30 shadow-sm">
                    <div className="flex flex-col">
                      <span className="text-emerald-700 dark:text-emerald-500 font-semibold text-sm uppercase tracking-wider mb-1">Completed</span>
                      <span className="font-extrabold text-3xl text-emerald-600 dark:text-emerald-500">{dailyAppointments.filter(a => a.status === 'Completed').length}</span>
@@ -1368,7 +1369,7 @@ const MedicalAppointmentSystem = () => {
           </Card>
 
           {/* Main Timeline */}
-          <Card className="flex-1 w-full border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl overflow-hidden flex flex-col h-[800px] bg-white dark:bg-zinc-950">
+          <Card className="flex-1 w-full border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl overflow-hidden flex flex-col h-200 bg-white dark:bg-zinc-950">
             <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 flex justify-between items-center">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">{format(selectedDate, 'EEEE')}</h2>
@@ -1379,7 +1380,7 @@ const MedicalAppointmentSystem = () => {
             <div className="flex-1 overflow-y-auto custom-scrollbar relative p-6">
               <div className="relative pl-16 max-w-4xl mx-auto">
                 {/* Timeline Axis */}
-                <div className="absolute top-0 bottom-0 left-[72px] w-[2px] bg-zinc-100 dark:bg-zinc-800/50" />
+                <div className="absolute top-0 bottom-0 left-18 w-0.5 bg-zinc-100 dark:bg-zinc-800/50" />
 
                 {hours.map(hour => {
                   const hourApts = dailyAppointments.filter(apt => {
@@ -1400,30 +1401,30 @@ const MedicalAppointmentSystem = () => {
                   const showCurrentTimeLine = isCurrentDay && currentHour === hour;
 
                   return (
-                    <div key={hour} className="relative min-h-[140px] mb-6 group">
+                    <div key={hour} className="relative min-h-35 mb-6 group">
                       {/* Time Label */}
                       <div className="absolute -left-16 top-0 w-16 text-right pr-4">
                         <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{format(new Date().setHours(hour, 0), 'h a')}</span>
                       </div>
                       
                       {/* Timeline Dot */}
-                      <div className="absolute left-[69px] top-1 w-2 h-2 rounded-full bg-zinc-300 dark:bg-zinc-600 ring-4 ring-white dark:bg-zinc-950 shadow-sm z-10" />
+                      <div className="absolute left-17.25 top-1 w-2 h-2 rounded-full bg-zinc-300 ring-4 ring-white shadow-sm z-10" />
 
                       {/* Current Time Indicator for this specific hour */}
                       {showCurrentTimeLine && (
                         <div 
-                          className="absolute left-[65px] right-0 z-20 flex items-center pointer-events-none"
+                          className="absolute left-16.25 right-0 z-20 flex items-center pointer-events-none"
                           style={{ top: `${(now.getMinutes() / 60) * 100}%`, transform: 'translateY(-50%)' }}
                         >
                           <div className="w-2.5 h-2.5 rounded-full bg-red-500 absolute left-1 shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
-                          <div className="h-[2px] bg-red-500 w-full shadow-[0_0_4px_rgba(239,68,68,0.4)] ml-3" />
+                          <div className="h-0.5 bg-red-500 w-full shadow-[0_0_4px_rgba(239,68,68,0.4)] ml-3" />
                         </div>
                       )}
 
                       {/* Hourly Content Box */}
                       <div className="pt-0 pl-12 pb-4 flex flex-col gap-4">
                          {hourApts.length === 0 ? (
-                           <div className="h-[100px] border-2 border-dashed border-zinc-100 dark:border-zinc-800/50 rounded-xl bg-zinc-50/30 dark:bg-zinc-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                           <div className="h-25 border-2 border-dashed border-zinc-100 dark:border-zinc-800/50 rounded-xl bg-zinc-50/30 dark:bg-zinc-900/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                              <span className="text-xs font-medium text-zinc-400 tracking-wide uppercase">No appointments</span>
                            </div>
                          ) : (
@@ -1460,7 +1461,7 @@ const MedicalAppointmentSystem = () => {
                                      <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{apt.doctor}</span>
                                    </div>
                                    <Avatar className="h-8 w-8 ring-2 ring-white/50 dark:ring-black/50 shadow-sm">
-                                     <AvatarFallback className="bg-gradient-to-br from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold">
+                                     <AvatarFallback className="bg-linear-to-br from-zinc-200 to-zinc-300 dark:from-zinc-700 dark:to-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-bold">
                                        {apt.doctor === 'Unassigned' ? '?' : apt.doctor.replace('Dr. ', '').substring(0,2).toUpperCase()}
                                      </AvatarFallback>
                                    </Avatar>
@@ -2273,7 +2274,7 @@ const MedicalAppointmentSystem = () => {
                       <h3 className="font-bold text-sm text-zinc-900 dark:text-zinc-100">Notifications</h3>
                       <Badge variant="outline" className="text-[10px] font-bold bg-white dark:bg-gray-800">{notificationCount} new</Badge>
                     </div>
-                    <div className="max-h-[320px] overflow-y-auto">
+                    <div className="max-h-80 overflow-y-auto">
                       {notifications.length === 0 ? (
                         <div className="p-6 text-center text-sm text-zinc-500">No notifications</div>
                       ) : (
@@ -2291,7 +2292,7 @@ const MedicalAppointmentSystem = () => {
                               </div>
                               <button 
                                 onClick={(e) => { e.stopPropagation(); setNotifications(prev => prev.filter(n => n.id !== notif.id)); }}
-                                className="text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2"
+                                className="text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2"
                                 title="Dismiss notification"
                               >
                                 <XCircle className="h-4 w-4" />
@@ -2328,7 +2329,7 @@ const MedicalAppointmentSystem = () => {
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
               >
                 <Avatar className="h-10 w-10 border border-zinc-200/50 dark:border-zinc-700/50 shadow-md ring-2 ring-offset-2 ring-zinc-100 dark:ring-zinc-800 dark:ring-offset-gray-950 transition-all hover:shadow-lg hover:scale-105">
-                  <AvatarFallback className="bg-gradient-to-br from-zinc-800 via-zinc-900 to-black text-white font-bold text-sm tracking-wider">
+                  <AvatarFallback className="bg-linear-to-br from-zinc-800 via-zinc-900 to-black text-white font-bold text-sm tracking-wider">
                     {loggedInUser?.email ? loggedInUser.email.substring(0, 2).toUpperCase() : 'AD'}
                   </AvatarFallback>
                 </Avatar>
@@ -2555,7 +2556,7 @@ const MedicalAppointmentSystem = () => {
                                 : "border-input bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                             )}
                           >
-                            <Stethoscope className={cn("h-4 w-4 flex-shrink-0", editForm.doctor === doc.name ? "text-[#2563EB]" : "text-muted-foreground")} />
+                            <Stethoscope className={cn("h-4 w-4 shrink-0", editForm.doctor === doc.name ? "text-[#2563EB]" : "text-muted-foreground")} />
                             <span className="truncate">{doc.name} - {doc.specialization}</span>
                           </button>
                         ))}
@@ -2952,9 +2953,9 @@ const MedicalAppointmentSystem = () => {
                           <div className="flex flex-col justify-start md:border-l md:border-zinc-100 dark:md:border-zinc-800 md:pl-6 pt-2 md:pt-0">
                              <p className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Assigned Doctor</p>
                              <Select value={apt.doctor} onValueChange={(value) => handleAssignDoctor(apt.appointmentId, value)}>
-                               <SelectTrigger className="!w-full !h-auto !min-h-[60px] !p-3 flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:bg-zinc-50 hover:border-indigo-300 dark:hover:bg-zinc-900 dark:hover:border-indigo-700 transition-all shadow-sm focus:ring-2 focus:ring-indigo-500/20 data-[state=open]:border-indigo-500 data-[state=open]:ring-2 data-[state=open]:ring-indigo-500/20">
+                               <SelectTrigger className="w-full! h-auto! min-h-15! p-3! flex items-center justify-between rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 hover:bg-zinc-50 hover:border-indigo-300 dark:hover:bg-zinc-900 dark:hover:border-indigo-700 transition-all shadow-sm focus:ring-2 focus:ring-indigo-500/20 data-[state=open]:border-indigo-500 data-[state=open]:ring-2 data-[state=open]:ring-indigo-500/20">
                                  <div className="flex items-center gap-3 flex-1 min-w-0 text-left">
-                                   <Avatar className="h-10 w-10 border border-zinc-200 dark:border-zinc-700 flex-shrink-0 shadow-sm">
+                                   <Avatar className="h-10 w-10 border border-zinc-200 dark:border-zinc-700 shrink-0 shadow-sm">
                                      <AvatarFallback className={apt.doctor === 'Unassigned' ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold" : "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 text-xs font-bold"}>
                                         {apt.doctor === 'Unassigned' ? '?' : apt.doctor.replace('Dr. ', '').substring(0,2).toUpperCase()}
                                      </AvatarFallback>
@@ -2965,10 +2966,10 @@ const MedicalAppointmentSystem = () => {
                                    </div>
                                  </div>
                                </SelectTrigger>
-                               <SelectContent className="p-1 rounded-xl shadow-xl border-zinc-200 dark:border-zinc-800 min-w-[240px]">
+                               <SelectContent className="p-1 rounded-xl shadow-xl border-zinc-200 dark:border-zinc-800 min-w-60">
                                  <SelectItem value="Unassigned" className="rounded-lg p-2 focus:bg-amber-50 dark:focus:bg-amber-900/20 cursor-pointer">
                                    <div className="flex items-center gap-3 w-full min-w-0">
-                                     <div className="h-9 w-9 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-amber-200/50 dark:border-amber-700/50">
+                                     <div className="h-9 w-9 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-200/50 dark:border-amber-700/50">
                                        ?
                                      </div>
                                      <div className="flex flex-col text-left flex-1 min-w-0">
@@ -2981,7 +2982,7 @@ const MedicalAppointmentSystem = () => {
                                  {doctors.map(d => (
                                    <SelectItem key={d.id} value={d.name} className="rounded-lg p-2 focus:bg-indigo-50 dark:focus:bg-indigo-900/20 cursor-pointer">
                                      <div className="flex items-center gap-3 w-full min-w-0">
-                                       <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-indigo-200/50 dark:border-indigo-700/50">
+                                       <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-200/50 dark:border-indigo-700/50">
                                          {d.name.replace('Dr. ', '').substring(0,2).toUpperCase()}
                                        </div>
                                        <div className="flex flex-col text-left flex-1 min-w-0">
@@ -3019,9 +3020,9 @@ const MedicalAppointmentSystem = () => {
       </Dialog>
       {/* Global Toast Notification */}
       {toastMessage && (
-        <div className={`fixed bottom-4 right-4 z-[100] w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border ${toastMessage.type === 'error' ? 'border-red-500' : 'border-indigo-500'} overflow-hidden transition-all duration-300 transform translate-y-0 opacity-100 flex flex-col animate-in slide-in-from-bottom-5`}>
+        <div className={`fixed bottom-4 right-4 z-100 w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-2xl border ${toastMessage.type === 'error' ? 'border-red-500' : 'border-indigo-500'} overflow-hidden transition-all duration-300 transform translate-y-0 opacity-100 flex flex-col animate-in slide-in-from-bottom-5`}>
           <div className="p-4 flex items-start gap-3">
-            <div className={`mt-0.5 rounded-full p-2 flex-shrink-0 ${toastMessage.type === 'error' ? 'bg-red-100 text-red-600' : 'bg-indigo-100 text-indigo-600'}`}>
+            <div className={`mt-0.5 rounded-full p-2 shrink-0 ${toastMessage.type === 'error' ? 'bg-red-100 text-red-600' : 'bg-indigo-100 text-indigo-600'}`}>
               {toastMessage.type === 'error' ? <XCircle className="w-5 h-5" /> : <Bell className="w-5 h-5" />}
             </div>
             <div className="flex-1 min-w-0">
@@ -3061,6 +3062,7 @@ const MedicalAppointmentSystem = () => {
         doctorName={invoiceData.doctorName}
         appointmentDate={invoiceData.appointmentDate}
       />
+      <Analytics />
     </div>
   );
 };

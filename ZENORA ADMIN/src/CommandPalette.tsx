@@ -72,7 +72,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] sm:pt-[20vh] px-4">
+      <div className="fixed inset-0 z-100 flex items-start justify-center pt-[15vh] sm:pt-[20vh] px-4">
         {/* Backdrop */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -154,7 +154,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                                   <>
                                     <span className="w-1 h-1 rounded-full bg-zinc-300 dark:bg-zinc-700"></span>
                                     <Activity className="w-3.5 h-3.5" />
-                                    <span className="truncate max-w-[150px]">{apt.symptoms}</span>
+                                    <span className="truncate max-w-37.5">{apt.symptoms}</span>
                                   </>
                                 )}
                               </div>

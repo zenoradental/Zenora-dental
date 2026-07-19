@@ -68,7 +68,7 @@ const CommandCenter: React.FC<CommandCenterProps> = ({ appointments, onViewAppoi
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[calc(100vh-200px)] min-h-[600px]">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 h-[calc(100vh-200px)] min-h-150">
         {STAGES.map(stage => {
           const stageApts = todaysAppointments.filter(apt => (apt.stage || 'Waiting Room') === stage);
           
@@ -105,13 +105,13 @@ const CommandCenter: React.FC<CommandCenterProps> = ({ appointments, onViewAppoi
                           <p className="font-bold text-zinc-900 dark:text-zinc-100 text-sm truncate pr-2">
                             {apt.patientName}
                           </p>
-                          {isPriority && <Zap className="h-4 w-4 text-amber-500 flex-shrink-0 fill-amber-500" />}
+                          {isPriority && <Zap className="h-4 w-4 text-amber-500 shrink-0 fill-amber-500" />}
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-zinc-500 mb-2">
                           <Clock className="h-3 w-3" /> {apt.appointmentTime}
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md truncate max-w-[120px]">
+                          <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md truncate max-w-30">
                             {apt.doctor}
                           </span>
                         </div>

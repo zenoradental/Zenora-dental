@@ -184,7 +184,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
           </CardContent>
         </Card>
 
-        <Card className="border-zinc-200 shadow-sm rounded-xl bg-gradient-to-br from-zinc-900 to-zinc-800 text-white">
+        <Card className="border-zinc-200 shadow-sm rounded-xl bg-linear-to-br from-zinc-900 to-zinc-800 text-white">
           <CardContent className="p-4 lg:p-5">
             <div className="flex justify-between items-start">
               <div>
@@ -212,7 +212,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <p className="text-sm text-zinc-500">Monthly revenue trends and projections</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[350px] w-full">
+            <div className="h-87.5 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={revenueData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
@@ -241,7 +241,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
             <p className="text-sm text-zinc-500">Distribution of services</p>
           </CardHeader>
           <CardContent>
-            <div className="h-[350px] w-full flex items-center justify-center">
+            <div className="h-87.5 w-full flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -277,7 +277,7 @@ const AnalyticsDashboard: React.FC<AnalyticsProps> = ({ appointments }) => {
           <p className="text-sm text-zinc-500">Total appointments booked per month</p>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
+          <div className="h-75 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={revenueData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
