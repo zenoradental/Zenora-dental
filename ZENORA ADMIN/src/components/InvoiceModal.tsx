@@ -148,7 +148,7 @@ export function InvoiceModal({ isOpen, onClose, patientName, doctorName, appoint
                       className="h-9"
                     />
                   </div>
-                  <div className="pt-[18px]">
+                  <div className="pt-4.5">
                     <Button 
                       variant="ghost" 
                       size="icon"
@@ -165,11 +165,11 @@ export function InvoiceModal({ isOpen, onClose, patientName, doctorName, appoint
           </div>
 
           <div className="border-t pt-6 space-y-3">
-            <div className="flex justify-between items-center max-w-[250px] ml-auto">
+            <div className="flex justify-between items-center max-w-62.5 ml-auto">
               <span className="text-sm text-zinc-500">Subtotal</span>
               <span className="font-medium">Rs. {subtotal.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between items-center max-w-[250px] ml-auto">
+            <div className="flex justify-between items-center max-w-62.5 ml-auto">
               <div className="flex items-center gap-2">
                 <span className="text-sm text-zinc-500">Tax Rate (%)</span>
                 <Input 
@@ -181,7 +181,7 @@ export function InvoiceModal({ isOpen, onClose, patientName, doctorName, appoint
               </div>
               <span className="font-medium">Rs. {taxAmount.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between items-center max-w-[250px] ml-auto pt-3 border-t">
+            <div className="flex justify-between items-center max-w-62.5 ml-auto pt-3 border-t">
               <span className="font-bold text-zinc-900">Total</span>
               <span className="font-bold text-blue-600 text-lg">Rs. {total.toFixed(2)}</span>
             </div>
