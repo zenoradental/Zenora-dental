@@ -9,13 +9,13 @@
         name="description" />
     <meta content="book dentist appointment, schedule dental visit, online dentist booking, dental checkup reservation"
         name="keywords" />
-    <link rel="canonical" href="https://zenoradental.com/book-appointment.html" />
+    <link rel="canonical" href="https://zenoradental.whitefoxofficial.space/book-appointment.html" />
     <meta content="Book Your Dental Appointment Online | Zenora Dental" property="og:title" />
     <meta
         content="Schedule your dental appointment with Zenora Dental quickly and easily online. Choose your preferred service and time for a gentle, personalized visit."
         property="og:description" />
     <meta content="assets/img/gen_dentist-examining-patients-teeth-close-up_1.jpg" property="og:image" />
-    <meta content="https://zenoradental.com/book-appointment.html" property="og:url" />
+    <meta content="https://zenoradental.whitefoxofficial.space/book-appointment.html" property="og:url" />
     <meta content="Book Your Dental Appointment Online | Zenora Dental" name="twitter:title" />
     <meta
         content="Schedule your dental appointment with Zenora Dental quickly and easily online. Choose your preferred service and time for a gentle, personalized visit."
@@ -531,6 +531,13 @@
                                     rows="4"></textarea>
                             </div>
 
+                            <!-- Honeypot: hidden from people, filled in by bots. Submissions
+                                 that carry a value here are silently discarded server-side. -->
+                            <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
+                                <label for="field-website">Website</label>
+                                <input type="text" id="field-website" name="website" tabindex="-1" autocomplete="off">
+                            </div>
+
                             <div class="summary-box">
                                 <h4>Appointment Summary</h4>
                                 <div class="summary-row">
@@ -636,8 +643,8 @@
                                 <img src="assets/img/zenora-logo-dark.svg" loading="lazy" alt="Zenora logo" class="brand_logo"/>
                             </a>
                             <div class="footer-contact_wrap">
-                                <a href="#" class="footer-contact_link w-inline-block">
-                                    <div>+91 XXXXXXXXXX</div>
+                                <a href="tel:+919000000000" class="footer-contact_link w-inline-block">
+                                    <div>+91 90000 00000</div>
                                 </a>
                                 <a href="mailto:zenoradental@gmail.com?subject=Support" class="footer-contact_link w-inline-block">
                                     <div>zenoradental@gmail.com</div>
@@ -767,9 +774,6 @@
                                     &copy; 2026 Zenora Dental. All rights reserved.
                                 </div>
                                 <div class="footer-bottom_right" style="display: flex; align-items: center; gap: 32px;">
-                                      <div class="footer-legal-links" style="font-size: 14px; opacity: 0.8;">
-                                          <a href="/admin/" style="font-size: 12px; padding: 4px 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; color: inherit; text-decoration: none; opacity: 0.6; transition: opacity 0.2s ease, border-color 0.2s ease;" onmouseover="this.style.opacity='1'; this.style.borderColor='rgba(255,255,255,0.4)';" onmouseout="this.style.opacity='0.6'; this.style.borderColor='rgba(255,255,255,0.2)';">Admin Portal</a>
-                                      </div>
                                   </div>
                             </div>
                         </div>
@@ -840,6 +844,17 @@
         // ==========================================
         //  Multi-Step Appointment Booking Logic
         // ==========================================
+        const ZENORA_API = 'https://zenora-backend-black.vercel.app';
+
+        // Ask the server which times are already taken on a given date. This endpoint
+        // returns time strings only — no patient records are exposed to this page.
+        async function isSlotBooked(date, time) {
+            const res = await fetch(`${ZENORA_API}/api/availability?date=${encodeURIComponent(date)}`, { cache: 'no-store' });
+            if (!res.ok) throw new Error('Availability lookup failed');
+            const data = await res.json();
+            return Array.isArray(data.booked) && data.booked.includes(time);
+        }
+
         let currentStep = 0;
         const totalSteps = 3;
 
@@ -1138,19 +1153,7 @@
                         btnNext.style.opacity = '0.7';
                         btnNext.style.pointerEvents = 'none';
 
-                        let response;
-                        try {
-                            response = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
-                            if (!response.ok) throw new Error('Vercel failed');
-                        } catch (e) {
-                            response = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
-                        }
-                        const appointments = await response.json();
-                        const isBooked = appointments.some(apt =>
-                            apt.appointmentDate === date &&
-                            apt.appointmentTime === time &&
-                            apt.status !== 'Cancelled'
-                        );
+                        const isBooked = await isSlotBooked(date, time);
 
                         if (isBooked) {
                             errors.push('This time slot is already booked by another patient. Please choose a different date or time.');
@@ -1194,58 +1197,42 @@
                     date: document.getElementById('field-date').value,
                     time: document.getElementById('field-time').value,
                     notes: document.getElementById('field-notes').value,
-                    medicalHistory: document.getElementById('field-medical-history').value
+                    medicalHistory: document.getElementById('field-medical-history').value,
+                    website: document.getElementById('field-website').value
                 };
 
-                async function postAppointmentWithFallback(payloadData) {
+                async function postAppointment(payloadData) {
                     try {
-                        const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, {
+                        const res = await fetch(`${ZENORA_API}/api/appointments`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payloadData)
                         });
-                        const data = await res.json();
+                        const data = await res.json().catch(() => ({}));
                         if (res.ok) return { success: true, data };
-                        if (res.status === 500 || data.error === 'Failed to save appointment') {
+
+                        if (res.status === 429) {
+                            return { success: false, error: data.error || 'Too many booking attempts from your network. Please try again later.' };
+                        }
+
+                        // The save may still have landed even though the response failed.
+                        // We cannot read appointment records from a public page, so confirm
+                        // via the slot-availability endpoint instead.
+                        if (res.status >= 500) {
                             try {
-                                const checkRes = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
-                                if (checkRes.ok) {
-                                    const apts = await checkRes.json();
-                                    const saved = apts.find(a => a.patientName === payloadData.name && a.appointmentDate === payloadData.date && a.appointmentTime === payloadData.time);
-                                    if (saved) return { success: true, data: { success: true, appointment: saved } };
+                                if (await isSlotBooked(payloadData.date, payloadData.time)) {
+                                    return { success: true, data: { success: true, pendingConfirmation: true } };
                                 }
                             } catch (e) { }
                         }
                         return { success: false, error: data.error };
                     } catch (err) {
-                        console.warn('Vercel POST failed, falling back to Render...', err);
-                    }
-                    try {
-                        const res2 = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payloadData)
-                        });
-                        const data2 = await res2.json();
-                        if (res2.ok) return { success: true, data: data2 };
-                        if (res2.status === 500 || data2.error === 'Failed to save appointment') {
-                            try {
-                                const checkRes2 = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
-                                if (checkRes2.ok) {
-                                    const apts2 = await checkRes2.json();
-                                    const saved2 = apts2.find(a => a.patientName === payloadData.name && a.appointmentDate === payloadData.date && a.appointmentTime === payloadData.time);
-                                    if (saved2) return { success: true, data: { success: true, appointment: saved2 } };
-                                }
-                            } catch (e) { }
-                        }
-                        return { success: false, error: data2.error };
-                    } catch (err2) {
                         return { success: false, error: 'Network Error: Could not connect to the booking server.' };
                     }
                 }
 
                 try {
-                    const result = await postAppointmentWithFallback(payload);
+                    const result = await postAppointment(payload);
                     if (!result.success) {
                         showErrorPopup([result.error || 'Failed to book appointment. Please try again.']);
                         btnNext.textContent = originalText;
@@ -1274,6 +1261,10 @@
             const name = document.getElementById('field-name').value;
             if (data && data.appointment && data.appointment.appointmentId) {
                 document.getElementById('success-tracking-id').textContent = data.appointment.appointmentId;
+            } else if (data && data.pendingConfirmation) {
+                // The booking was saved but the response was lost in transit, so we
+                // never received the tracking ID. It is in the confirmation email.
+                document.getElementById('success-tracking-id').textContent = 'Sent to your email';
             }
             const email = document.getElementById('field-email').value;
             const service = document.getElementById('field-service').value;

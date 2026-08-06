@@ -5,10 +5,10 @@
     <title>Track Your Appointment Status | Zenora Dental</title>
     <meta content="Check and track the confirmation status of your upcoming dental appointment at Zenora Dental." name="description"/>
     <meta content="track appointment, dental status check, zenora appointment confirmation" name="keywords"/>
-    <link rel="canonical" href="https://zenoradental.com/check-status.html"/>
+    <link rel="canonical" href="https://zenoradental.whitefoxofficial.space/check-status.html"/>
     <meta content="Track Your Appointment Status | Zenora Dental" property="og:title"/>
     <meta content="Check and track the confirmation status of your upcoming dental appointment at Zenora Dental." property="og:description"/>
-    <meta content="https://zenoradental.com/check-status.html" property="og:url"/>
+    <meta content="https://zenoradental.whitefoxofficial.space/check-status.html" property="og:url"/>
     <meta content="Track Your Appointment Status | Zenora Dental" name="twitter:title"/>
     <meta content="Check and track the confirmation status of your upcoming dental appointment at Zenora Dental." name="twitter:description"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -30,8 +30,8 @@
         .status-header { text-align: center; margin-bottom: 40px; }
         .status-header h1 { font-size: 32px; color: #0f172a; margin-bottom: 16px; font-weight: 700; letter-spacing: -0.5px; word-spacing: 4px; }
         .status-header p { color: #64748b; font-size: 16px; line-height: 1.6; }
-        .search-box { display: flex; gap: 12px; margin-bottom: 35px; }
-        .search-box input { flex: 1; padding: 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; outline: none; transition: border-color 0.2s; }
+        .search-box { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 35px; }
+        .search-box input { flex: 1 1 180px; min-width: 0; padding: 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; outline: none; transition: border-color 0.2s; }
         .search-box input:focus { border-color: #0f172a; }
         .search-box button { padding: 15px 25px; background: #0f172a; color: #ffffff; border: 2px solid #0f172a; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.25s ease; }
         .search-box button:hover { background: #ffffff; color: #0f172a; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(15, 23, 42, 0.15); }
@@ -91,11 +91,12 @@
                 </div>
 
                 <div class="search-box">
-                    <input type="text" id="tracking-id" placeholder="e.g. APT1234">
+                    <input type="text" id="tracking-id" placeholder="Tracking ID (e.g. APT1234)">
+                    <input type="tel" id="tracking-phone" placeholder="Your phone number" inputmode="numeric" autocomplete="tel">
                     <button type="button" onclick="checkStatus()">Check Status</button>
                 </div>
-                
-                <p class="error-msg" id="error-msg">Appointment not found. Please check your Tracking ID.</p>
+
+                <p class="error-msg" id="error-msg">Appointment not found. Please check your Tracking ID and phone number.</p>
 
                 <div class="result-card" id="result-card">
                     <div class="result-header">
@@ -111,24 +112,31 @@
     </div>
 
     <script>
+        const ZENORA_API = 'https://zenora-backend-black.vercel.app';
+
         function checkStatus() {
             const id = document.getElementById('tracking-id').value.trim();
+            const phone = document.getElementById('tracking-phone').value.trim();
             const errorMsg = document.getElementById('error-msg');
             const resultCard = document.getElementById('result-card');
-            
-            if(!id) return;
 
-            async function fetchWithFallback(urlPath) {
-                try {
-                    const res = await fetch(`https://zenora-backend-black.vercel.app${urlPath}`);
-                    if (res.ok) return await res.json();
-                } catch (e) { console.warn('Vercel fetch failed, trying Render...', e); }
-                const res2 = await fetch(`https://zenora-backend-black.vercel.app${urlPath}`);
-                if (!res2.ok) throw new Error('Not found');
-                return await res2.json();
+            if (!id || !phone) {
+                resultCard.classList.remove('active');
+                errorMsg.classList.add('active');
+                return;
             }
 
-            fetchWithFallback(`/api/appointments/${id}`)
+            // The phone number proves this appointment belongs to the person asking.
+            // Without it the server will not return a record.
+            async function fetchAppointment(trackingId, phoneNumber) {
+                const url = `${ZENORA_API}/api/appointments/${encodeURIComponent(trackingId)}`
+                    + `?phone=${encodeURIComponent(phoneNumber)}`;
+                const res = await fetch(url, { cache: 'no-store' });
+                if (!res.ok) throw new Error('Not found');
+                return await res.json();
+            }
+
+            fetchAppointment(id, phone)
                 .then(data => {
                     errorMsg.classList.remove('active');
                     document.getElementById('res-name').textContent = data.patientName;

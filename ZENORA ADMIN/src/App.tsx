@@ -52,7 +52,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { cn } from '@/lib/utils';
+import { formatINR } from '@/lib/currency';
 import { InvoiceModal } from './components/InvoiceModal';
+import {
+  apiFetch,
+  clearToken,
+  setToken,
+  onUnauthorized,
+  login as apiLogin,
+  fetchMe,
+  changeOwnPassword,
+  type AuthUser
+} from '@/lib/api';
 
 interface SeparatorProps
   extends React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root> {}
@@ -113,6 +124,106 @@ const PasswordInputField = React.forwardRef<HTMLInputElement, PasswordInputField
   }
 );
 PasswordInputField.displayName = "PasswordInputField";
+
+/**
+ * Shown instead of the dashboard when the server reports mustChangePassword.
+ * There is no way past this screen other than setting a new password or signing out.
+ */
+const ForcedPasswordChange: React.FC<{
+  email: string;
+  onSubmit: (currentPassword: string, newPassword: string) => Promise<void>;
+  onCancel: () => void;
+}> = ({ email, onSubmit, onCancel }) => {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (newPassword.length < 12) {
+      setError('Your new password must be at least 12 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('The two new passwords do not match.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await onSubmit(currentPassword, newPassword);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to change password.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-gray-950 p-4">
+      <Card className="w-full max-w-md rounded-2xl px-6 py-10 shadow-xl border-0 bg-white dark:bg-gray-900">
+        <CardContent>
+          <div className="flex flex-col items-center space-y-6">
+            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40">
+              <ShieldCheck className="w-8 h-8 text-amber-600" />
+            </div>
+            <div className="space-y-1.5 text-center">
+              <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+                Set a new password
+              </h1>
+              <p className="text-zinc-500 text-sm">
+                {email} is still using a temporary password. Choose a new one to continue.
+              </p>
+            </div>
+
+            <form className="w-full space-y-5" onSubmit={handleSubmit}>
+              <PasswordInputField
+                label="Current (temporary) password"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+              <PasswordInputField
+                label="New password (minimum 12 characters)"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <PasswordInputField
+                label="Confirm new password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+
+              {error && (
+                <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md text-center">
+                  {error}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                disabled={saving}
+                className="w-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold"
+              >
+                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                {saving ? 'Saving…' : 'Update password and continue'}
+              </Button>
+              <Button type="button" variant="ghost" onClick={onCancel} className="w-full text-zinc-500">
+                Sign out instead
+              </Button>
+            </form>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 // Types
 interface Appointment {
@@ -205,16 +316,13 @@ const StatsCardComponent = ({
 };
 
 const MedicalAppointmentSystem = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return localStorage.getItem('adminLoggedIn') === 'true' || sessionStorage.getItem('adminLoggedIn') === 'true';
-  });
-  const [loggedInUser, setLoggedInUser] = useState<{id: string, email: string, role: string} | null>(() => {
-    const localUser = localStorage.getItem('adminUser');
-    if (localUser) return JSON.parse(localUser);
-    const sessionUser = sessionStorage.getItem('adminUser');
-    if (sessionUser) return JSON.parse(sessionUser);
-    return null;
-  });
+  // Auth state is derived from the server, never from a flag in browser storage.
+  // 'checking' is the boot state while GET /api/auth/me validates any stored token.
+  const [authState, setAuthState] = useState<'checking' | 'anonymous' | 'authenticated'>('checking');
+  const [loggedInUser, setLoggedInUser] = useState<AuthUser | null>(null);
+  const isLoggedIn = authState === 'authenticated';
+  const isMasterAdmin = loggedInUser?.role === 'Master Admin';
+  const [mustChangePassword, setMustChangePassword] = useState(false);
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'appointments' | 'patients' | 'doctors' | 'calendar' | 'settings' | 'command-center' | 'analytics'>(() => {
     return (localStorage.getItem('adminCurrentPage') as any) || 'dashboard';
   });
@@ -297,6 +405,10 @@ const MedicalAppointmentSystem = () => {
   const [promptDialog, setPromptDialog] = useState<{ isOpen: boolean, title: string, message: string, onConfirm: (value: string) => void } | null>(null);
   const [promptValue, setPromptValue] = useState('');
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [servicePrices, setServicePrices] = useState<{ serviceName: string; price: number }[]>([]);
+  const [newServiceName, setNewServiceName] = useState('');
+  const [newServicePrice, setNewServicePrice] = useState('');
+  const [savingServicePrice, setSavingServicePrice] = useState(false);
   const [newDoctorDialog, setNewDoctorDialog] = useState(false);
   const [newDoctor, setNewDoctor] = useState({ name: '', specialization: '', phone: '', email: '' });
   const [selectedPatient, setSelectedPatient] = useState<any | null>(null);
@@ -307,45 +419,73 @@ const MedicalAppointmentSystem = () => {
   };
 
   const handleLogout = () => {
-    setIsLoggedIn(false);
+    clearToken();
+    setAuthState('anonymous');
     setLoggedInUser(null);
-    localStorage.removeItem('adminLoggedIn');
-    sessionStorage.removeItem('adminLoggedIn');
-    localStorage.removeItem('adminUser');
-    sessionStorage.removeItem('adminUser');
+    setMustChangePassword(false);
     setEmail('');
     setPassword('');
     setCurrentPage('dashboard');
   };
 
+  // Validate any stored token against the server before rendering the dashboard.
   useEffect(() => {
-    if (isLoggedIn) {
-      fetch(`https://zenora-backend-black.vercel.app/api/admins`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setAdmins(data);
-            if (loggedInUser) {
-              const latestUser = data.find(a => a.id === loggedInUser.id || (a.email && loggedInUser.email && a.email.toLowerCase() === loggedInUser.email.toLowerCase()));
-              if (!latestUser) {
-                handleLogout();
-                showToast("Your account access has been revoked.", "error");
-              } else if (latestUser.role !== loggedInUser.role) {
-                const updatedUser = { ...loggedInUser, role: latestUser.role };
-                setLoggedInUser(updatedUser);
-                if (localStorage.getItem('adminUser')) {
-                  localStorage.setItem('adminUser', JSON.stringify(updatedUser));
-                }
-                if (sessionStorage.getItem('adminUser')) {
-                  sessionStorage.setItem('adminUser', JSON.stringify(updatedUser));
-                }
-              }
-            }
-          }
-        })
-        .catch(console.error);
-    }
+    let cancelled = false;
+    (async () => {
+      const user = await fetchMe();
+      if (cancelled) return;
+      if (user) {
+        setLoggedInUser(user);
+        setMustChangePassword(Boolean(user.mustChangePassword));
+        setAuthState('authenticated');
+      } else {
+        clearToken();
+        setAuthState('anonymous');
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Any 401 from any endpoint ends the session immediately.
+  useEffect(() => onUnauthorized(() => {
+    setAuthState('anonymous');
+    setLoggedInUser(null);
+    setMustChangePassword(false);
+    setCurrentPage('dashboard');
+  }), []);
+
+  // Re-check role and account existence against the server on every page change,
+  // so a revoked or demoted account loses access without needing to sign out.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    let cancelled = false;
+    (async () => {
+      const user = await fetchMe();
+      if (cancelled) return;
+      if (!user) {
+        handleLogout();
+        showToast('Your account access has been revoked.', 'error');
+        return;
+      }
+      setLoggedInUser(prev =>
+        prev && prev.role === user.role && prev.email === user.email ? prev : user
+      );
+      setMustChangePassword(Boolean(user.mustChangePassword));
+    })();
+    return () => { cancelled = true; };
   }, [isLoggedIn, currentPage]);
+
+  // The admin directory is Master Admin only on the server, so only ask for it then.
+  useEffect(() => {
+    if (!isLoggedIn || !isMasterAdmin) {
+      setAdmins([]);
+      return;
+    }
+    apiFetch('/api/admins')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => { if (Array.isArray(data)) setAdmins(data); })
+      .catch(() => {});
+  }, [isLoggedIn, isMasterAdmin, currentPage]);
 
   useEffect(() => {
     if (darkMode) {
@@ -356,10 +496,13 @@ const MedicalAppointmentSystem = () => {
   }, [darkMode]);
 
   useEffect(() => {
+    // Only poll while authenticated — otherwise every tick is a guaranteed 401.
+    if (!isLoggedIn) return;
+
     const fetchAppointments = async () => {
       if (isUpdatingRef.current) return;
       try {
-        const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments?t=${Date.now()}`, { cache: 'no-store' });
+        const res = await apiFetch(`/api/appointments?t=${Date.now()}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           // If an optimistic update occurred recently, discard the potentially stale server response
@@ -449,12 +592,12 @@ const MedicalAppointmentSystem = () => {
     fetchAppointments();
     const fetchInterval = setInterval(fetchAppointments, 1000);
     return () => clearInterval(fetchInterval);
-  }, []);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     const fetchSettingsAndDoctors = async () => {
       try {
-        const res = await fetch(`https://zenora-backend-black.vercel.app/api/settings`, { cache: 'no-store' });
+        const res = await apiFetch(`/api/settings`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setSystemSettings(data);
@@ -464,13 +607,23 @@ const MedicalAppointmentSystem = () => {
       }
 
       try {
-        const res = await fetch(`https://zenora-backend-black.vercel.app/api/doctors`, { cache: 'no-store' });
+        const res = await apiFetch(`/api/doctors`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setDoctors(data);
         }
       } catch (err) {
         console.error('Failed to fetch doctors:', err);
+      }
+
+      try {
+        const res = await apiFetch(`/api/service-prices`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) setServicePrices(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch service prices:', err);
       }
     };
 
@@ -526,30 +679,23 @@ const MedicalAppointmentSystem = () => {
     }
     
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok && data.success) {
-        setIsLoggedIn(true);
-        setLoggedInUser(data.user);
-        if (rememberMe) {
-          localStorage.setItem('adminLoggedIn', 'true');
-          localStorage.setItem('adminUser', JSON.stringify(data.user));
-        } else {
-          sessionStorage.setItem('adminLoggedIn', 'true');
-          sessionStorage.setItem('adminUser', JSON.stringify(data.user));
-        }
-      } else {
-        setLoginError(data.error || 'Invalid credentials');
-      }
-    } catch (err) {
-      setLoginError('Failed to connect to authentication server');
+      const data = await apiLogin(email, password);
+      // The token is the credential. Nothing else grants access.
+      setToken(data.token, rememberMe);
+      setLoggedInUser(data.user);
+      setMustChangePassword(Boolean(data.user.mustChangePassword));
+      setAuthState('authenticated');
+      setPassword('');
+    } catch (err: any) {
+      setLoginError(err?.message || 'Failed to connect to authentication server');
     }
+  };
+
+  const handleForcedPasswordChange = async (currentPassword: string, newPassword: string) => {
+    const data = await changeOwnPassword(currentPassword, newPassword);
+    setToken(data.token, rememberMe);
+    setMustChangePassword(false);
+    setLoggedInUser(prev => prev ? { ...prev, mustChangePassword: false } : prev);
   };
 
 
@@ -628,7 +774,7 @@ const MedicalAppointmentSystem = () => {
     ));
 
     try {
-      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointmentId}/status`, {
+      const response = await apiFetch(`/api/appointments/${appointmentId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -652,7 +798,7 @@ const MedicalAppointmentSystem = () => {
     ));
 
     try {
-      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointmentId}/doctor`, {
+      const response = await apiFetch(`/api/appointments/${appointmentId}/doctor`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ doctor: doctorName })
@@ -691,7 +837,7 @@ const MedicalAppointmentSystem = () => {
     }
 
     try {
-      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointment.appointmentId}`, {
+      const response = await apiFetch(`/api/appointments/${appointment.appointmentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...appointment, service: newService })
@@ -721,7 +867,7 @@ const MedicalAppointmentSystem = () => {
     setIsEditingDetails(false);
 
     try {
-      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}`, {
+      const response = await apiFetch(`/api/appointments/${selectedAppointment.appointmentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm)
@@ -732,7 +878,7 @@ const MedicalAppointmentSystem = () => {
         // Fallback to PATCH endpoints if PUT is propagating or unavailable on edge node
         let fallbackSuccess = false;
         if (editForm.doctor !== undefined && editForm.doctor !== selectedAppointment.doctor) {
-          const docRes = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}/doctor`, {
+          const docRes = await apiFetch(`/api/appointments/${selectedAppointment.appointmentId}/doctor`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ doctor: editForm.doctor })
@@ -740,7 +886,7 @@ const MedicalAppointmentSystem = () => {
           if (docRes.ok) fallbackSuccess = true;
         }
         if (editForm.status !== undefined && editForm.status !== selectedAppointment.status) {
-          const statusRes = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}/status`, {
+          const statusRes = await apiFetch(`/api/appointments/${selectedAppointment.appointmentId}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: editForm.status })
@@ -759,29 +905,6 @@ const MedicalAppointmentSystem = () => {
     } finally {
       isUpdatingRef.current = false;
     }
-  };
-
-  const handleClearAppointments = async () => {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Clear Database',
-      message: 'Are you sure you want to permanently clear the appointment database? This cannot be undone.',
-      onConfirm: async () => {
-        try {
-          const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, {
-            method: 'DELETE',
-          });
-          if (response.ok) {
-            setAppointments([]);
-            showToast('Database successfully cleared.', 'success');
-          } else {
-            console.error('Failed to clear appointments on server');
-          }
-        } catch (err) {
-          console.error('Error clearing appointments:', err);
-        }
-      }
-    });
   };
 
   const exportToCSV = () => {
@@ -934,10 +1057,6 @@ const MedicalAppointmentSystem = () => {
           <p className="text-zinc-500">Manage all patient appointments</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleClearAppointments} variant="outline" className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg">
-            <XCircle className="h-4 w-4" />
-            Clear Database
-          </Button>
           <Button onClick={exportToCSV} className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg">
             <Download className="h-4 w-4" />
             Export CSV
@@ -1485,7 +1604,7 @@ const MedicalAppointmentSystem = () => {
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/admins`, {
+      const res = await apiFetch(`/api/admins`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newAdminEmail, password: newAdminPassword })
@@ -1513,7 +1632,7 @@ const MedicalAppointmentSystem = () => {
       message: 'Are you sure you want to revoke access for this administrator? They will no longer be able to log in.',
       onConfirm: async () => {
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/admins/${id}`, { method: 'DELETE' });
+          const res = await apiFetch(`/api/admins/${id}`, { method: 'DELETE' });
           if (res.ok) {
             setAdmins(prev => prev.filter(a => a.id !== id));
             showToast('Administrator access revoked.', 'success');
@@ -1531,7 +1650,7 @@ const MedicalAppointmentSystem = () => {
 
   const handleUpdateRole = async (id: string, newRole: string) => {
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/admins/${id}/role`, {
+      const res = await apiFetch(`/api/admins/${id}/role`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole })
@@ -1557,7 +1676,7 @@ const MedicalAppointmentSystem = () => {
       message: 'Enter the new password for this administrator:',
       onConfirm: async (newPassword: string) => {
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/admins/${id}/password`, {
+          const res = await apiFetch(`/api/admins/${id}/password`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: newPassword })
@@ -1586,7 +1705,7 @@ const MedicalAppointmentSystem = () => {
     setTogglingSetting(setting);
 
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/settings`, {
+      const res = await apiFetch(`/api/settings`, {
         method: 'PATCH',
         cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
@@ -1608,7 +1727,7 @@ const MedicalAppointmentSystem = () => {
   const handleAddDoctor = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/doctors`, {
+      const res = await apiFetch(`/api/doctors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newDoctor)
@@ -1636,7 +1755,7 @@ const MedicalAppointmentSystem = () => {
       message: 'Are you sure you want to remove this doctor from the directory?',
       onConfirm: async () => {
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/doctors/${id}`, { method: 'DELETE' });
+          const res = await apiFetch(`/api/doctors/${id}`, { method: 'DELETE' });
           if (res.ok) {
             setDoctors(prev => prev.filter(d => d.id !== id));
             showToast('Doctor removed.', 'success');
@@ -1659,7 +1778,7 @@ const MedicalAppointmentSystem = () => {
       message: `Are you sure you want to delete ${patient.name} and all their appointment records?`,
       onConfirm: async () => {
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/patients/${encodeURIComponent(patient.id)}`, { method: 'DELETE' });
+          const res = await apiFetch(`/api/patients/${encodeURIComponent(patient.id)}`, { method: 'DELETE' });
           if (res.ok) {
             setAppointments(prev => prev.filter(apt => {
               const contact = apt.email || apt.phone || '';
@@ -1687,7 +1806,7 @@ const MedicalAppointmentSystem = () => {
       message: `Are you sure you want to delete appointment ${apt.appointmentId} for ${apt.patientName}?`,
       onConfirm: async () => {
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${encodeURIComponent(apt.appointmentId)}`, { method: 'DELETE' });
+          const res = await apiFetch(`/api/appointments/${encodeURIComponent(apt.appointmentId)}`, { method: 'DELETE' });
           if (res.ok) {
             setAppointments(prev => prev.filter(a => a.appointmentId !== apt.appointmentId));
             showToast('Appointment deleted.', 'success');
@@ -1711,7 +1830,7 @@ const MedicalAppointmentSystem = () => {
     lastOptimisticUpdateRef.current = Date.now();
     
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${aptId}/stage`, {
+      const res = await apiFetch(`/api/appointments/${aptId}/stage`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage: newStage })
@@ -1725,14 +1844,182 @@ const MedicalAppointmentSystem = () => {
     }
   };
 
+  const handleSaveServicePrice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = newServiceName.trim();
+    const price = Number(newServicePrice);
+
+    if (!name) {
+      showToast('Enter a service name.', 'error');
+      return;
+    }
+    if (!Number.isFinite(price) || price < 0) {
+      showToast('Enter a valid price.', 'error');
+      return;
+    }
+
+    setSavingServicePrice(true);
+    try {
+      const res = await apiFetch('/api/service-prices', {
+        method: 'PUT',
+        body: JSON.stringify({ serviceName: name, price })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setServicePrices(prev => {
+          const rest = prev.filter(p => p.serviceName !== data.servicePrice.serviceName);
+          return [...rest, data.servicePrice].sort((a, b) => a.serviceName.localeCompare(b.serviceName));
+        });
+        setNewServiceName('');
+        setNewServicePrice('');
+        showToast(`Price for "${name}" saved.`, 'success');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast(err.error || 'Failed to save price.', 'error');
+      }
+    } catch (err) {
+      showToast('Network error while saving price.', 'error');
+    } finally {
+      setSavingServicePrice(false);
+    }
+  };
+
+  const handleDeleteServicePrice = (serviceName: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Service Price',
+      message: `Remove the price for "${serviceName}"? Appointments already completed keep the price they were stamped with.`,
+      onConfirm: async () => {
+        try {
+          const res = await apiFetch(`/api/service-prices/${encodeURIComponent(serviceName)}`, { method: 'DELETE' });
+          if (res.ok) {
+            setServicePrices(prev => prev.filter(p => p.serviceName !== serviceName));
+            showToast('Service price removed.', 'success');
+          } else {
+            const err = await res.json().catch(() => ({}));
+            showToast(err.error || 'Failed to remove price.', 'error');
+          }
+        } catch (err) {
+          showToast('Network error while removing price.', 'error');
+        }
+      }
+    });
+  };
+
   const renderSettings = () => (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">Settings</h2>
+        <p className="text-zinc-500">Manage service prices and administrator access.</p>
+      </div>
+
+      {/* Service prices drive every figure on the Analytics tab. A completed
+          appointment is stamped with the price in force at that moment. */}
+      <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-gray-900">
+        <CardHeader className="bg-slate-50 dark:bg-gray-950 border-b border-zinc-100 dark:border-zinc-800">
+          <h3 className="font-bold text-zinc-900 dark:text-zinc-100">Service Prices</h3>
+          <p className="text-sm text-zinc-500">
+            Revenue is recorded when an appointment is marked Completed, using the price set here.
+            Services without a price contribute nothing to Analytics.
+          </p>
+        </CardHeader>
+        <CardContent className="pt-6 space-y-6">
+          <form onSubmit={handleSaveServicePrice} className="flex flex-col sm:flex-row gap-3 sm:items-end">
+            <div className="flex-1">
+              <Label htmlFor="servicePriceName" className="text-xs font-bold mb-1.5 block text-zinc-700 dark:text-zinc-300">
+                Service name
+              </Label>
+              <Input
+                id="servicePriceName"
+                value={newServiceName}
+                onChange={e => setNewServiceName(e.target.value)}
+                placeholder="e.g. Root Canal"
+                maxLength={120}
+                className="bg-slate-50 dark:bg-gray-950 border-zinc-200 dark:border-zinc-800"
+              />
+            </div>
+            <div className="w-full sm:w-44">
+              <Label htmlFor="servicePriceAmount" className="text-xs font-bold mb-1.5 block text-zinc-700 dark:text-zinc-300">
+                Price (₹)
+              </Label>
+              <Input
+                id="servicePriceAmount"
+                type="number"
+                min={0}
+                step={1}
+                value={newServicePrice}
+                onChange={e => setNewServicePrice(e.target.value)}
+                placeholder="8500"
+                className="bg-slate-50 dark:bg-gray-950 border-zinc-200 dark:border-zinc-800"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={savingServicePrice}
+              className="bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black hover:bg-zinc-800 font-bold"
+            >
+              {savingServicePrice ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Save Price
+            </Button>
+          </form>
+
+          {servicePrices.length === 0 ? (
+            <div className="text-center py-8 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">
+              <p className="text-sm text-zinc-500">
+                No service prices set yet. Until you add prices, the Analytics tab will show an empty state
+                rather than estimated numbers.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-zinc-50/50 dark:bg-gray-950/50 text-zinc-500 dark:text-zinc-400 font-medium border-b border-zinc-100 dark:border-zinc-800">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Service</th>
+                    <th className="px-4 py-3 font-medium text-right">Price</th>
+                    <th className="px-4 py-3 font-medium text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {servicePrices.map(sp => (
+                    <tr key={sp.serviceName} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 transition-colors">
+                      <td className="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{sp.serviceName}</td>
+                      <td className="px-4 py-3 text-right tabular-nums dark:text-zinc-300">{formatINR(sp.price)}</td>
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-zinc-500 hover:text-zinc-900 h-8 text-xs"
+                            onClick={() => { setNewServiceName(sp.serviceName); setNewServicePrice(String(sp.price)); }}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50 h-8 text-xs"
+                            onClick={() => handleDeleteServicePrice(sp.serviceName)}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div>
         <h2 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">User Management</h2>
         <p className="text-zinc-500">Manage administrator access to the dashboard.</p>
       </div>
 
-      {loggedInUser?.role === 'Master Admin' && (
+      {isMasterAdmin && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card className="border-red-200 dark:border-red-900 shadow-sm rounded-xl overflow-hidden bg-red-50/30 dark:bg-red-950/20">
             <CardHeader className="border-b border-red-100 dark:border-red-900/50 pb-4">
@@ -1782,6 +2069,19 @@ const MedicalAppointmentSystem = () => {
         </div>
       )}
 
+      {!isMasterAdmin && (
+        <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-gray-900">
+          <CardContent className="py-8 text-center">
+            <ShieldCheck className="w-8 h-8 text-zinc-300 mx-auto mb-3" />
+            <p className="font-medium text-zinc-900 dark:text-zinc-100">Administrator management is restricted</p>
+            <p className="text-sm text-zinc-500 mt-1">
+              Only a Master Admin can view or change administrator accounts. Ask a Master Admin if you need access changed.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {isMasterAdmin && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl overflow-hidden bg-white dark:bg-gray-900">
@@ -1810,7 +2110,7 @@ const MedicalAppointmentSystem = () => {
                           </Badge>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {loggedInUser?.role === 'Master Admin' && admin.id !== loggedInUser.id && admin.id !== 'ADM0001' && (loggedInUser.id === 'ADM0001' || admin.role !== 'Master Admin') && (
+                          {admin.id !== loggedInUser?.id && admin.id !== 'ADM0001' && (loggedInUser?.id === 'ADM0001' || admin.role !== 'Master Admin') && (
                             <div className="flex justify-end gap-2">
                               <Button variant="ghost" size="sm" onClick={() => handleUpdateRole(admin.id, admin.role === 'Master Admin' ? 'Administrator' : 'Master Admin')} className="text-zinc-500 hover:text-zinc-900 h-8 text-xs">
                                 {admin.role === 'Master Admin' ? 'Demote' : 'Promote'}
@@ -1823,11 +2123,6 @@ const MedicalAppointmentSystem = () => {
                               </Button>
                             </div>
                           )}
-                          {loggedInUser?.role !== 'Master Admin' && admin.role !== 'Master Admin' && admin.id !== loggedInUser?.id && admin.id !== 'ADM0001' && (
-                            <Button variant="ghost" size="sm" onClick={() => handleDeleteAdmin(admin.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/50 h-8 text-xs">
-                              Revoke Access
-                            </Button>
-                          )}
                         </td>
                       </tr>
                     ))}
@@ -1838,8 +2133,7 @@ const MedicalAppointmentSystem = () => {
           </Card>
         </div>
 
-        {loggedInUser?.role === 'Master Admin' && (
-          <div>
+        <div>
             <Card className="border-zinc-200 dark:border-zinc-800 shadow-sm rounded-xl bg-white dark:bg-gray-900">
             <CardHeader className="border-b border-zinc-100 dark:border-zinc-800">
               <h3 className="font-bold text-zinc-900 dark:text-zinc-100">Add New Admin</h3>
@@ -1860,14 +2154,18 @@ const MedicalAppointmentSystem = () => {
                 </div>
                 <div>
                   <Label htmlFor="newAdminPassword" className="text-xs font-bold mb-1.5 block text-zinc-700 dark:text-zinc-300">Temporary Password</Label>
-                  <Input 
-                    id="newAdminPassword" 
-                    type="password" 
-                    value={newAdminPassword} 
-                    onChange={e => setNewAdminPassword(e.target.value)} 
-                    required 
+                  <Input
+                    id="newAdminPassword"
+                    type="password"
+                    value={newAdminPassword}
+                    onChange={e => setNewAdminPassword(e.target.value)}
+                    required
+                    minLength={12}
                     className="bg-slate-50 dark:bg-gray-950 border-zinc-200 dark:border-zinc-800"
                   />
+                  <p className="text-[11px] text-zinc-500 mt-1.5">
+                    Minimum 12 characters. They will be asked to replace it at first login.
+                  </p>
                 </div>
                 <Button type="submit" className="w-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-white shadow-sm mt-2 font-bold">
                   <User className="w-4 h-4 mr-2" /> Invite Administrator
@@ -1876,8 +2174,8 @@ const MedicalAppointmentSystem = () => {
             </CardContent>
           </Card>
         </div>
-        )}
       </div>
+      )}
     </div>
   );
 
@@ -2064,6 +2362,26 @@ const MedicalAppointmentSystem = () => {
       default: return renderDashboard();
     }
   };
+
+  // Never render the dashboard while the stored token is still being validated.
+  if (authState === 'checking') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 dark:bg-gray-950 gap-4">
+        <Loader2 className="w-8 h-8 text-zinc-400 animate-spin" />
+        <p className="text-sm text-zinc-500">Verifying your session…</p>
+      </div>
+    );
+  }
+
+  if (isLoggedIn && mustChangePassword) {
+    return (
+      <ForcedPasswordChange
+        email={loggedInUser?.email || ''}
+        onSubmit={handleForcedPasswordChange}
+        onCancel={handleLogout}
+      />
+    );
+  }
 
   if (!isLoggedIn) {
     return (

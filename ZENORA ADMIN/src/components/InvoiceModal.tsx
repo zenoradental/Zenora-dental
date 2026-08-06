@@ -5,6 +5,16 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { formatINRExact } from '@/lib/currency';
+
+/**
+ * Amounts for the generated PDF. jsPDF's built-in Helvetica has no ₹ glyph, so the
+ * PDF is prefixed with "Rs." while still using en-IN digit grouping. The on-screen
+ * figures use the real ₹ sign via formatINRExact.
+ */
+const pdfAmount = (value: number): string =>
+  new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    .format(Number.isFinite(value) ? value : 0);
 
 type LineItem = {
   description: string;
@@ -71,7 +81,7 @@ export function InvoiceModal({ isOpen, onClose, patientName, doctorName, appoint
     const tableColumn = ["Description", "Amount (INR)"];
     const tableRows = items.map(item => [
       item.description, 
-      `Rs. ${Number(item.price).toFixed(2)}`
+      `Rs. ${pdfAmount(Number(item.price))}`
     ]);
 
     autoTable(doc, {
@@ -85,12 +95,12 @@ export function InvoiceModal({ isOpen, onClose, patientName, doctorName, appoint
     const finalY = (doc as any).lastAutoTable.finalY || 90;
 
     doc.setFontSize(11);
-    doc.text(`Subtotal: Rs. ${subtotal.toFixed(2)}`, 140, finalY + 10);
-    doc.text(`Tax (${taxRate}%): Rs. ${taxAmount.toFixed(2)}`, 140, finalY + 18);
+    doc.text(`Subtotal: Rs. ${pdfAmount(subtotal)}`, 140, finalY + 10);
+    doc.text(`Tax (${taxRate}%): Rs. ${pdfAmount(taxAmount)}`, 140, finalY + 18);
     
     doc.setFontSize(14);
     doc.setTextColor(30, 58, 138);
-    doc.text(`Total: Rs. ${total.toFixed(2)}`, 140, finalY + 28);
+    doc.text(`Total: Rs. ${pdfAmount(total)}`, 140, finalY + 28);
 
     // Footer
     doc.setFontSize(10);
@@ -167,7 +177,7 @@ export function InvoiceModal({ isOpen, onClose, patientName, doctorName, appoint
           <div className="border-t pt-6 space-y-3">
             <div className="flex justify-between items-center max-w-62.5 ml-auto">
               <span className="text-sm text-zinc-500">Subtotal</span>
-              <span className="font-medium">Rs. {subtotal.toFixed(2)}</span>
+              <span className="font-medium tabular-nums">{formatINRExact(subtotal)}</span>
             </div>
             <div className="flex justify-between items-center max-w-62.5 ml-auto">
               <div className="flex items-center gap-2">
@@ -179,11 +189,11 @@ export function InvoiceModal({ isOpen, onClose, patientName, doctorName, appoint
                   onChange={(e) => setTaxRate(Number(e.target.value))}
                 />
               </div>
-              <span className="font-medium">Rs. {taxAmount.toFixed(2)}</span>
+              <span className="font-medium tabular-nums">{formatINRExact(taxAmount)}</span>
             </div>
             <div className="flex justify-between items-center max-w-62.5 ml-auto pt-3 border-t">
               <span className="font-bold text-zinc-900">Total</span>
-              <span className="font-bold text-blue-600 text-lg">Rs. {total.toFixed(2)}</span>
+              <span className="font-bold text-blue-600 text-lg tabular-nums">{formatINRExact(total)}</span>
             </div>
           </div>
         </div>

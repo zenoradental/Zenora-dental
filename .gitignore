@@ -7,3 +7,6 @@ preview-all.html
 dist/
 .vercel
 .env*
+
+# Templates are documentation, not secrets — keep them tracked.
+!.env.example

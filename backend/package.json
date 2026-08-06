@@ -11,13 +11,18 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@sentry/node": "^10.69.0",
     "@vercel/functions": "^3.7.3",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.4.0",
+    "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.7.2",
     "nodemailer": "^9.0.1",
     "sharp": "^0.35.2",
-    "twilio": "^6.0.2"
+    "twilio": "^6.0.2",
+    "zod": "^4.4.3"
   }
 }

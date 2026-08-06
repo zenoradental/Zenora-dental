@@ -3,3 +3,6 @@ node_modules/
 *.log
 .vercel
 .env*
+
+# Template is documentation, not a secret — keep it tracked.
+!.env.example
