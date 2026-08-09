@@ -689,12 +689,12 @@ function card(s, x, y, w, h, fill) {
     x: 1.0, y: 5.85, w: 6, h: 0.35, margin: 0,
     fontFace: B, fontSize: 15, bold: true, color: "FFFFFF"
   });
-  s.addText("[your phone]   ·   [your email]   ·   whitefoxofficial.space", {
+  s.addText("+91 87624 07565   ·   abhi.karnam4444@gmail.com   ·   whitefoxofficial.space", {
     x: 1.0, y: 6.22, w: 8, h: 0.35, margin: 0,
     fontFace: B, fontSize: 13, color: "7FA8AC"
   });
   s.addNotes("Close with the assumptive: 'Do you want to start with Professional, or would Clinic Plus fit better with the second chair coming?' Then be quiet.");
 }
 
-pres.writeFile({ fileName: "../02_Zenora_Pitch_Deck.pptx" })
+pres.writeFile({ fileName: "../Abhijay_Pitch_Deck.pptx" })
   .then(() => console.log("written"));

@@ -8,9 +8,9 @@ Welcome to your customized kit, Abhijay. Everything here is tailored for selling
 
 | # | File | What it's for |
 |---|---|---|
-| **1** | `../05_Production_Readiness_Gap_Report.md` | **Read this first.** Three findings change what you're allowed to demo and promise. |
+| **1** | `05_Production_Readiness_Gap_Report.md` | **Read this first.** Three findings change what you're allowed to demo and promise. |
 | **2** | `Abhijay_Sales_Playbook.md` | Your personalized playbook — Bangalore areas, walk-in routes, scripts with your name, objection handling. |
-| **3** | `02_Zenora_Pitch_Deck.pptx` | 14-slide deck for walking a clinic owner through it. Speaker notes on every slide. |
+| **3** | `Abhijay_Pitch_Deck.pptx` | 14-slide deck for walking a clinic owner through it. Speaker notes on every slide. |
 | **4** | `Abhijay_One_Pager.pdf` | Your personalized one-pager with your name. Print it. Leave it at reception. Attach it to follow-ups. |
 | **5** | `04_Zenora_Sales_Ops.xlsx` | Pipeline CRM, prospect list, pricing calculator, 12-month revenue model. |
 
