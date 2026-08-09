@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback, startTransition } from 'react';
+import React, { useState, useEffect, useRef, useMemo, startTransition } from 'react';
 import { format, startOfWeek, endOfWeek, isToday, parse, startOfMonth, endOfMonth, isSameMonth, isSameDay, addDays, subMonths, addMonths } from 'date-fns';
 import customLogo from './assets/favicon.svg';
 import { Analytics } from "@vercel/analytics/react";
