@@ -370,7 +370,7 @@ const MedicalAppointmentSystem = () => {
         if (res.ok) {
           const data = await res.json();
           // If an optimistic update occurred recently, discard the potentially stale server response
-          if (Date.now() - lastOptimisticUpdateRef.current < 3000) return;
+          if (Date.now() - lastOptimisticUpdateRef.current < 8000) return;
           
           let newAppointmentsFound = false;
           const newNotifications: any[] = [];
@@ -789,6 +789,8 @@ const MedicalAppointmentSystem = () => {
       title: 'Clear Database',
       message: 'Are you sure you want to permanently clear the appointment database? This cannot be undone.',
       onConfirm: async () => {
+        isUpdatingRef.current = true;
+        lastOptimisticUpdateRef.current = Date.now();
         try {
           const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, {
             method: 'DELETE',
@@ -801,6 +803,8 @@ const MedicalAppointmentSystem = () => {
           }
         } catch (err) {
           console.error('Error clearing appointments:', err);
+        } finally {
+          isUpdatingRef.current = false;
         }
       }
     });
@@ -1680,6 +1684,8 @@ const MedicalAppointmentSystem = () => {
       title: 'Delete Patient',
       message: `Are you sure you want to delete ${patient.name} and all their appointment records?`,
       onConfirm: async () => {
+        isUpdatingRef.current = true;
+        lastOptimisticUpdateRef.current = Date.now();
         try {
           const res = await fetch(`https://zenora-backend-black.vercel.app/api/patients/${encodeURIComponent(patient.id)}`, { method: 'DELETE' });
           if (res.ok) {
@@ -1697,6 +1703,8 @@ const MedicalAppointmentSystem = () => {
         } catch (err) {
           console.error(err);
           showToast('Network error while deleting patient.', 'error');
+        } finally {
+          isUpdatingRef.current = false;
         }
       }
     });
@@ -1708,6 +1716,8 @@ const MedicalAppointmentSystem = () => {
       title: 'Delete Appointment',
       message: `Are you sure you want to delete appointment ${apt.appointmentId} for ${apt.patientName}?`,
       onConfirm: async () => {
+        isUpdatingRef.current = true;
+        lastOptimisticUpdateRef.current = Date.now();
         try {
           const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${encodeURIComponent(apt.appointmentId)}`, { method: 'DELETE' });
           if (res.ok) {
@@ -1720,6 +1730,8 @@ const MedicalAppointmentSystem = () => {
         } catch (err) {
           console.error(err);
           showToast('Network error while deleting appointment.', 'error');
+        } finally {
+          isUpdatingRef.current = false;
         }
       }
     });
