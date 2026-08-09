@@ -10,3 +10,6 @@ dist/
 
 # Templates are documentation, not secrets — keep them tracked.
 !.env.example
+
+# Personal Claude Code settings — machine-specific, not for the repo.
+.claude/settings.local.json
