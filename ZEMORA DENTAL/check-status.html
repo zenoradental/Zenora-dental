@@ -128,7 +128,7 @@
                 return await res2.json();
             }
 
-            fetchWithFallback(`/api/appointments/${id}`)
+            fetchWithFallback(`/api/appointments/status/${id}`)
                 .then(data => {
                     errorMsg.classList.remove('active');
                     document.getElementById('res-name').textContent = data.patientName;

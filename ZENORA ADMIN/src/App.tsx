@@ -214,6 +214,35 @@ const MedicalAppointmentSystem = () => {
     if (sessionUser) return JSON.parse(sessionUser);
     return null;
   });
+
+  // JWT token management
+  const getAuthToken = (): string | null => {
+    return localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+  };
+
+  // Authenticated fetch wrapper — auto-injects Bearer token and handles 401
+  const authFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+    const token = getAuthToken();
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string> || {}),
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 401) {
+      // Token expired or invalid — force logout
+      setIsLoggedIn(false);
+      setLoggedInUser(null);
+      localStorage.removeItem('adminLoggedIn');
+      localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminToken');
+      sessionStorage.removeItem('adminLoggedIn');
+      sessionStorage.removeItem('adminUser');
+      sessionStorage.removeItem('adminToken');
+    }
+    return res;
+  };
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'appointments' | 'patients' | 'doctors' | 'calendar' | 'settings' | 'command-center' | 'analytics'>(() => {
     return (localStorage.getItem('adminCurrentPage') as any) || 'dashboard';
   });
@@ -320,6 +349,8 @@ const MedicalAppointmentSystem = () => {
     sessionStorage.removeItem('adminLoggedIn');
     localStorage.removeItem('adminUser');
     sessionStorage.removeItem('adminUser');
+    localStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminToken');
     setEmail('');
     setPassword('');
     setCurrentPage('dashboard');
@@ -327,7 +358,7 @@ const MedicalAppointmentSystem = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      fetch(`https://zenora-backend-black.vercel.app/api/admins`)
+      authFetch(`https://zenora-backend-black.vercel.app/api/admins`)
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -366,7 +397,7 @@ const MedicalAppointmentSystem = () => {
     const fetchAppointments = async () => {
       if (isUpdatingRef.current) return;
       try {
-        const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments?t=${Date.now()}`, { cache: 'no-store' });
+        const res = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments?t=${Date.now()}`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           // If an optimistic update occurred recently, discard the potentially stale server response
@@ -464,7 +495,7 @@ const MedicalAppointmentSystem = () => {
   useEffect(() => {
     const fetchSettingsAndDoctors = async () => {
       try {
-        const res = await fetch(`https://zenora-backend-black.vercel.app/api/settings`, { cache: 'no-store' });
+        const res = await authFetch(`https://zenora-backend-black.vercel.app/api/settings`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setSystemSettings(data);
@@ -474,7 +505,7 @@ const MedicalAppointmentSystem = () => {
       }
 
       try {
-        const res = await fetch(`https://zenora-backend-black.vercel.app/api/doctors`, { cache: 'no-store' });
+        const res = await authFetch(`https://zenora-backend-black.vercel.app/api/doctors`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setDoctors(data);
@@ -547,12 +578,15 @@ const MedicalAppointmentSystem = () => {
       if (res.ok && data.success) {
         setIsLoggedIn(true);
         setLoggedInUser(data.user);
+        // Store JWT token
         if (rememberMe) {
           localStorage.setItem('adminLoggedIn', 'true');
           localStorage.setItem('adminUser', JSON.stringify(data.user));
+          localStorage.setItem('adminToken', data.token);
         } else {
           sessionStorage.setItem('adminLoggedIn', 'true');
           sessionStorage.setItem('adminUser', JSON.stringify(data.user));
+          sessionStorage.setItem('adminToken', data.token);
         }
       } else {
         setLoginError(data.error || 'Invalid credentials');
@@ -650,7 +684,7 @@ const MedicalAppointmentSystem = () => {
     ));
 
     try {
-      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointmentId}/status`, {
+      const response = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointmentId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -674,7 +708,7 @@ const MedicalAppointmentSystem = () => {
     ));
 
     try {
-      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointmentId}/doctor`, {
+      const response = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointmentId}/doctor`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ doctor: doctorName })
@@ -713,7 +747,7 @@ const MedicalAppointmentSystem = () => {
     }
 
     try {
-      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointment.appointmentId}`, {
+      const response = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments/${appointment.appointmentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...appointment, service: newService })
@@ -743,7 +777,7 @@ const MedicalAppointmentSystem = () => {
     setIsEditingDetails(false);
 
     try {
-      const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}`, {
+      const response = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm)
@@ -754,7 +788,7 @@ const MedicalAppointmentSystem = () => {
         // Fallback to PATCH endpoints if PUT is propagating or unavailable on edge node
         let fallbackSuccess = false;
         if (editForm.doctor !== undefined && editForm.doctor !== selectedAppointment.doctor) {
-          const docRes = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}/doctor`, {
+          const docRes = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}/doctor`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ doctor: editForm.doctor })
@@ -762,7 +796,7 @@ const MedicalAppointmentSystem = () => {
           if (docRes.ok) fallbackSuccess = true;
         }
         if (editForm.status !== undefined && editForm.status !== selectedAppointment.status) {
-          const statusRes = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}/status`, {
+          const statusRes = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments/${selectedAppointment.appointmentId}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: editForm.status })
@@ -783,32 +817,8 @@ const MedicalAppointmentSystem = () => {
     }
   };
 
-  const handleClearAppointments = async () => {
-    setConfirmDialog({
-      isOpen: true,
-      title: 'Clear Database',
-      message: 'Are you sure you want to permanently clear the appointment database? This cannot be undone.',
-      onConfirm: async () => {
-        isUpdatingRef.current = true;
-        lastOptimisticUpdateRef.current = Date.now();
-        try {
-          const response = await fetch(`https://zenora-backend-black.vercel.app/api/appointments`, {
-            method: 'DELETE',
-          });
-          if (response.ok) {
-            setAppointments([]);
-            showToast('Database successfully cleared.', 'success');
-          } else {
-            console.error('Failed to clear appointments on server');
-          }
-        } catch (err) {
-          console.error('Error clearing appointments:', err);
-        } finally {
-          isUpdatingRef.current = false;
-        }
-      }
-    });
-  };
+  // handleClearAppointments — REMOVED (Security: bulk delete endpoint eliminated from backend)
+  // Individual appointment deletion is still available via the single-delete endpoint.
 
   const exportToCSV = () => {
     const headers = ['ID', 'Patient', 'Age', 'Gender', 'Phone', 'Doctor', 'Date', 'Time', 'Status'];
@@ -960,10 +970,7 @@ const MedicalAppointmentSystem = () => {
           <p className="text-zinc-500">Manage all patient appointments</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={handleClearAppointments} variant="outline" className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg">
-            <XCircle className="h-4 w-4" />
-            Clear Database
-          </Button>
+          {/* Clear Database button removed — bulk delete endpoint eliminated for security */}
           <Button onClick={exportToCSV} className="gap-2 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg">
             <Download className="h-4 w-4" />
             Export CSV
@@ -1511,7 +1518,7 @@ const MedicalAppointmentSystem = () => {
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/admins`, {
+      const res = await authFetch(`https://zenora-backend-black.vercel.app/api/admins`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: newAdminEmail, password: newAdminPassword })
@@ -1539,7 +1546,7 @@ const MedicalAppointmentSystem = () => {
       message: 'Are you sure you want to revoke access for this administrator? They will no longer be able to log in.',
       onConfirm: async () => {
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/admins/${id}`, { method: 'DELETE' });
+          const res = await authFetch(`https://zenora-backend-black.vercel.app/api/admins/${id}`, { method: 'DELETE' });
           if (res.ok) {
             setAdmins(prev => prev.filter(a => a.id !== id));
             showToast('Administrator access revoked.', 'success');
@@ -1557,7 +1564,7 @@ const MedicalAppointmentSystem = () => {
 
   const handleUpdateRole = async (id: string, newRole: string) => {
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/admins/${id}/role`, {
+      const res = await authFetch(`https://zenora-backend-black.vercel.app/api/admins/${id}/role`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole })
@@ -1583,7 +1590,7 @@ const MedicalAppointmentSystem = () => {
       message: 'Enter the new password for this administrator:',
       onConfirm: async (newPassword: string) => {
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/admins/${id}/password`, {
+          const res = await authFetch(`https://zenora-backend-black.vercel.app/api/admins/${id}/password`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: newPassword })
@@ -1612,7 +1619,7 @@ const MedicalAppointmentSystem = () => {
     setTogglingSetting(setting);
 
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/settings`, {
+      const res = await authFetch(`https://zenora-backend-black.vercel.app/api/settings`, {
         method: 'PATCH',
         cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
@@ -1634,7 +1641,7 @@ const MedicalAppointmentSystem = () => {
   const handleAddDoctor = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/doctors`, {
+      const res = await authFetch(`https://zenora-backend-black.vercel.app/api/doctors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newDoctor)
@@ -1662,7 +1669,7 @@ const MedicalAppointmentSystem = () => {
       message: 'Are you sure you want to remove this doctor from the directory?',
       onConfirm: async () => {
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/doctors/${id}`, { method: 'DELETE' });
+          const res = await authFetch(`https://zenora-backend-black.vercel.app/api/doctors/${id}`, { method: 'DELETE' });
           if (res.ok) {
             setDoctors(prev => prev.filter(d => d.id !== id));
             showToast('Doctor removed.', 'success');
@@ -1687,7 +1694,7 @@ const MedicalAppointmentSystem = () => {
         isUpdatingRef.current = true;
         lastOptimisticUpdateRef.current = Date.now();
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/patients/${encodeURIComponent(patient.id)}`, { method: 'DELETE' });
+          const res = await authFetch(`https://zenora-backend-black.vercel.app/api/patients/${encodeURIComponent(patient.id)}`, { method: 'DELETE' });
           if (res.ok) {
             setAppointments(prev => prev.filter(apt => {
               const contact = apt.email || apt.phone || '';
@@ -1719,7 +1726,7 @@ const MedicalAppointmentSystem = () => {
         isUpdatingRef.current = true;
         lastOptimisticUpdateRef.current = Date.now();
         try {
-          const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${encodeURIComponent(apt.appointmentId)}`, { method: 'DELETE' });
+          const res = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments/${encodeURIComponent(apt.appointmentId)}`, { method: 'DELETE' });
           if (res.ok) {
             setAppointments(prev => prev.filter(a => a.appointmentId !== apt.appointmentId));
             showToast('Appointment deleted.', 'success');
@@ -1745,7 +1752,7 @@ const MedicalAppointmentSystem = () => {
     lastOptimisticUpdateRef.current = Date.now();
     
     try {
-      const res = await fetch(`https://zenora-backend-black.vercel.app/api/appointments/${aptId}/stage`, {
+      const res = await authFetch(`https://zenora-backend-black.vercel.app/api/appointments/${aptId}/stage`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stage: newStage })

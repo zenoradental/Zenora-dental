@@ -1140,16 +1140,15 @@
 
                         let response;
                         try {
-                            response = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
+                            response = await fetch('https://zenora-backend-black.vercel.app/api/appointments/slots');
                             if (!response.ok) throw new Error('Vercel failed');
                         } catch (e) {
-                            response = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
+                            response = await fetch('https://zenora-backend-black.vercel.app/api/appointments/slots');
                         }
                         const appointments = await response.json();
                         const isBooked = appointments.some(apt =>
                             apt.appointmentDate === date &&
-                            apt.appointmentTime === time &&
-                            apt.status !== 'Cancelled'
+                            apt.appointmentTime === time
                         );
 
                         if (isBooked) {
@@ -1207,14 +1206,8 @@
                         const data = await res.json();
                         if (res.ok) return { success: true, data };
                         if (res.status === 500 || data.error === 'Failed to save appointment') {
-                            try {
-                                const checkRes = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
-                                if (checkRes.ok) {
-                                    const apts = await checkRes.json();
-                                    const saved = apts.find(a => a.patientName === payloadData.name && a.appointmentDate === payloadData.date && a.appointmentTime === payloadData.time);
-                                    if (saved) return { success: true, data: { success: true, appointment: saved } };
-                                }
-                            } catch (e) { }
+                            // Appointment may have been saved despite the error — proceed optimistically
+                            return { success: false, error: data.error };
                         }
                         return { success: false, error: data.error };
                     } catch (err) {
@@ -1229,14 +1222,8 @@
                         const data2 = await res2.json();
                         if (res2.ok) return { success: true, data: data2 };
                         if (res2.status === 500 || data2.error === 'Failed to save appointment') {
-                            try {
-                                const checkRes2 = await fetch('https://zenora-backend-black.vercel.app/api/appointments');
-                                if (checkRes2.ok) {
-                                    const apts2 = await checkRes2.json();
-                                    const saved2 = apts2.find(a => a.patientName === payloadData.name && a.appointmentDate === payloadData.date && a.appointmentTime === payloadData.time);
-                                    if (saved2) return { success: true, data: { success: true, appointment: saved2 } };
-                                }
-                            } catch (e) { }
+                            // Appointment may have been saved despite the error — proceed optimistically
+                            return { success: false, error: data2.error };
                         }
                         return { success: false, error: data2.error };
                     } catch (err2) {

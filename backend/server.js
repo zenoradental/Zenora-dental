@@ -1,4 +1,4 @@
-// Build deploy trigger v2026.07.01 - Add PUT appointment endpoint
+// Build deploy trigger v2026.07.02 - Security: JWT auth + bcrypt + protected endpoints
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 const dns = require('dns');
 try { dns.setDefaultResultOrder('ipv4first'); } catch (e) {}
@@ -8,6 +8,27 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const mongoose = require('mongoose');
 const { waitUntil } = require('@vercel/functions');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'zenora-jwt-secret-change-in-production-2026';
+const JWT_EXPIRES_IN = '24h';
+
+// Authentication middleware — verifies JWT from Authorization header
+const authenticateAdmin = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required. Please log in.' });
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.admin = decoded;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token. Please log in again.' });
+  }
+};
 
 
 const app = express();
@@ -312,8 +333,9 @@ const initializeDb = async () => {
   try {
     const adminCount = await Admin.countDocuments();
     if (adminCount === 0) {
-      await Admin.create({ id: 'ADM0001', email: 'admin@zenoradental.com', password: 'zenoradental2010', role: 'Master Admin' });
-      console.log('Default Master Admin created.');
+      const hashedPassword = await bcrypt.hash('zenoradental2010', 12);
+      await Admin.create({ id: 'ADM0001', email: 'admin@zenoradental.com', password: hashedPassword, role: 'Master Admin' });
+      console.log('Default Master Admin created (password hashed).');
     }
 
     const settingsCount = await Setting.countDocuments();
@@ -375,8 +397,38 @@ const generateId = async () => {
   return 'APT' + nextId.toString().padStart(4, '0');
 }
 
-// GET all appointments
-app.get('/api/appointments', async (req, res) => {
+// GET booked slots only (PUBLIC — no PII exposed, used by patient booking form)
+app.get('/api/appointments/slots', async (req, res) => {
+  try {
+    const appointments = await Appointment.find(
+      { status: { $ne: 'Cancelled' } },
+      { appointmentDate: 1, appointmentTime: 1, _id: 0 }
+    ).lean();
+    res.json(appointments);
+  } catch (err) {
+    console.error('Failed to read appointment slots:', err);
+    res.status(500).json({ error: 'Failed to read appointment slots' });
+  }
+});
+
+// GET appointment status by tracking ID (PUBLIC — limited fields for patient self-service)
+app.get('/api/appointments/status/:id', async (req, res) => {
+  try {
+    const appointment = await Appointment.findOne(
+      { appointmentId: req.params.id },
+      { patientName: 1, appointmentDate: 1, appointmentTime: 1, status: 1, doctor: 1, service: 1, _id: 0 }
+    ).lean();
+    if (!appointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    res.json(appointment);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to check appointment status' });
+  }
+});
+
+// GET all appointments (PROTECTED — full PII, admin dashboard only)
+app.get('/api/appointments', authenticateAdmin, async (req, res) => {
   try {
     const appointments = await Appointment.find().sort({ createdAt: -1, _id: -1 }).lean();
     res.json(appointments);
@@ -386,8 +438,8 @@ app.get('/api/appointments', async (req, res) => {
   }
 });
 
-// GET a single appointment by ID
-app.get('/api/appointments/:id', async (req, res) => {
+// GET a single appointment by ID (PROTECTED)
+app.get('/api/appointments/:id', authenticateAdmin, async (req, res) => {
   try {
     const appointment = await Appointment.findOne({ appointmentId: req.params.id });
     if (!appointment) {
@@ -491,8 +543,8 @@ app.post('/api/appointments', async (req, res) => {
   }
 });
 
-// PATCH update appointment stage
-app.patch('/api/appointments/:id/stage', async (req, res) => {
+// PATCH update appointment stage (PROTECTED)
+app.patch('/api/appointments/:id/stage', authenticateAdmin, async (req, res) => {
   try {
     const { stage } = req.body;
     
@@ -513,8 +565,8 @@ app.patch('/api/appointments/:id/stage', async (req, res) => {
   }
 });
 
-// PATCH update appointment status
-app.patch('/api/appointments/:id/status', async (req, res) => {
+// PATCH update appointment status (PROTECTED)
+app.patch('/api/appointments/:id/status', authenticateAdmin, async (req, res) => {
   try {
     const { status } = req.body;
     
@@ -587,8 +639,8 @@ app.patch('/api/appointments/:id/status', async (req, res) => {
   }
 });
 
-// PATCH update appointment doctor
-app.patch('/api/appointments/:id/doctor', async (req, res) => {
+// PATCH update appointment doctor (PROTECTED)
+app.patch('/api/appointments/:id/doctor', authenticateAdmin, async (req, res) => {
   try {
     const { doctor } = req.body;
     
@@ -641,8 +693,8 @@ app.patch('/api/appointments/:id/doctor', async (req, res) => {
   }
 });
 
-// PUT full edit appointment & patient details
-app.put('/api/appointments/:id', async (req, res) => {
+// PUT full edit appointment & patient details (PROTECTED)
+app.put('/api/appointments/:id', authenticateAdmin, async (req, res) => {
   try {
     const {
       patientName,
@@ -739,8 +791,8 @@ app.put('/api/appointments/:id', async (req, res) => {
   }
 });
 
-// DELETE single appointment by ID
-app.delete('/api/appointments/:id', async (req, res) => {
+// DELETE single appointment by ID (PROTECTED)
+app.delete('/api/appointments/:id', authenticateAdmin, async (req, res) => {
   try {
     await Appointment.deleteOne({ appointmentId: req.params.id });
     res.json({ success: true, message: 'Appointment deleted.' });
@@ -750,19 +802,11 @@ app.delete('/api/appointments/:id', async (req, res) => {
   }
 });
 
-// DELETE all appointments
-app.delete('/api/appointments', async (req, res) => {
-  try {
-    await Appointment.deleteMany({});
-    res.json({ success: true, message: 'All appointments cleared.' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to clear appointments' });
-  }
-});
+// DELETE all appointments — REMOVED (Security: wipe endpoint eliminated)
+// This endpoint previously allowed anyone to delete the entire database.
 
-// DELETE patient and their appointments by identifier (name, email, or phone)
-app.delete('/api/patients/:id', async (req, res) => {
+// DELETE patient and their appointments by identifier (PROTECTED)
+app.delete('/api/patients/:id', authenticateAdmin, async (req, res) => {
   try {
     const id = decodeURIComponent(req.params.id);
     
@@ -803,30 +847,62 @@ app.delete('/api/patients/:id', async (req, res) => {
   }
 });
 
-// POST /api/auth/login
+// POST /api/auth/login — issues JWT on successful authentication
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    
-    const admin = await Admin.findOne({ email: { $regex: new RegExp(`^${email}$`, 'i') } });
-    if (admin && (admin.password === password || admin.password.toLowerCase() === password.toLowerCase())) {
-      const setting = await Setting.findOne();
-      
-      if (setting && setting.maintenanceMode && admin.role !== 'Master Admin') {
-        return res.status(403).json({ error: 'The dashboard is currently down for scheduled maintenance. Please try again later.' });
-      }
-
-      res.json({ success: true, user: { id: admin.id, email: admin.email, role: admin.role } });
-    } else {
-      res.status(401).json({ error: 'Invalid credentials' });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
     }
+    
+    // Escape regex special chars to prevent ReDoS
+    const escapedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const admin = await Admin.findOne({ email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') } });
+    
+    if (!admin) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    // Support both hashed (bcrypt) and legacy plaintext passwords during migration
+    let passwordValid = false;
+    if (admin.password.startsWith('$2b$') || admin.password.startsWith('$2a$')) {
+      passwordValid = await bcrypt.compare(password, admin.password);
+    } else {
+      // Legacy plaintext comparison (will be removed after migration)
+      passwordValid = (admin.password === password);
+      if (passwordValid) {
+        // Auto-migrate: hash the plaintext password on successful login
+        admin.password = await bcrypt.hash(password, 12);
+        await admin.save();
+        console.log(`Auto-migrated password to bcrypt for admin: ${admin.email}`);
+      }
+    }
+
+    if (!passwordValid) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const setting = await Setting.findOne();
+    if (setting && setting.maintenanceMode && admin.role !== 'Master Admin') {
+      return res.status(403).json({ error: 'The dashboard is currently down for scheduled maintenance. Please try again later.' });
+    }
+
+    // Issue JWT
+    const token = jwt.sign(
+      { id: admin.id, email: admin.email, role: admin.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    res.json({ success: true, token, user: { id: admin.id, email: admin.email, role: admin.role } });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Failed to authenticate' });
   }
 });
 
-// GET /api/admins
-app.get('/api/admins', async (req, res) => {
+// GET /api/admins (PROTECTED)
+app.get('/api/admins', authenticateAdmin, async (req, res) => {
   try {
     const admins = await Admin.find().select('id email role -_id').lean();
     res.json(admins);
@@ -835,8 +911,8 @@ app.get('/api/admins', async (req, res) => {
   }
 });
 
-// POST /api/admins
-app.post('/api/admins', async (req, res) => {
+// POST /api/admins (PROTECTED — password hashed before storage)
+app.post('/api/admins', authenticateAdmin, async (req, res) => {
   try {
     const { email, password, role } = req.body;
     if (!email || !password) {
@@ -849,10 +925,12 @@ app.post('/api/admins', async (req, res) => {
       return res.status(400).json({ error: 'Admin with this email already exists' });
     }
     
+    const hashedPassword = await bcrypt.hash(password, 12);
+    
     const newAdmin = new Admin({
       id: 'ADM' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
       email,
-      password,
+      password: hashedPassword,
       role: role || 'Administrator'
     });
     
@@ -864,8 +942,8 @@ app.post('/api/admins', async (req, res) => {
   }
 });
 
-// DELETE /api/admins/:id
-app.delete('/api/admins/:id', async (req, res) => {
+// DELETE /api/admins/:id (PROTECTED)
+app.delete('/api/admins/:id', authenticateAdmin, async (req, res) => {
   try {
     if (req.params.id === 'ADM0001') {
       return res.status(403).json({ error: 'Cannot delete the primary Master Admin' });
@@ -886,8 +964,8 @@ app.delete('/api/admins/:id', async (req, res) => {
   }
 });
 
-// PATCH /api/admins/:id/role
-app.patch('/api/admins/:id/role', async (req, res) => {
+// PATCH /api/admins/:id/role (PROTECTED)
+app.patch('/api/admins/:id/role', authenticateAdmin, async (req, res) => {
   try {
     const { role } = req.body;
     if (req.params.id === 'ADM0001') {
@@ -908,8 +986,8 @@ app.patch('/api/admins/:id/role', async (req, res) => {
   }
 });
 
-// PATCH /api/admins/:id/password
-app.patch('/api/admins/:id/password', async (req, res) => {
+// PATCH /api/admins/:id/password (PROTECTED — password hashed before storage)
+app.patch('/api/admins/:id/password', authenticateAdmin, async (req, res) => {
   try {
     const { password } = req.body;
     if (!password) {
@@ -925,7 +1003,7 @@ app.patch('/api/admins/:id/password', async (req, res) => {
       return res.status(403).json({ error: 'Standard users cannot change the password for Master Admin accounts.' });
     }
     
-    admin.password = password;
+    admin.password = await bcrypt.hash(password, 12);
     await admin.save();
     
     res.json({ success: true });
@@ -947,8 +1025,8 @@ app.get('/api/settings', async (req, res) => {
   }
 });
 
-// PATCH /api/settings
-app.patch('/api/settings', async (req, res) => {
+// PATCH /api/settings (PROTECTED)
+app.patch('/api/settings', authenticateAdmin, async (req, res) => {
   try {
     const { maintenanceMode, pauseBookings } = req.body;
     let settings = await Setting.findOne();
@@ -977,8 +1055,8 @@ app.get('/api/doctors', async (req, res) => {
   }
 });
 
-// POST /api/doctors
-app.post('/api/doctors', async (req, res) => {
+// POST /api/doctors (PROTECTED)
+app.post('/api/doctors', authenticateAdmin, async (req, res) => {
   try {
     const { name, specialization, status, phone, email } = req.body;
     if (!name || !specialization) {
@@ -1007,8 +1085,8 @@ app.post('/api/doctors', async (req, res) => {
   }
 });
 
-// PATCH /api/doctors/:id
-app.patch('/api/doctors/:id', async (req, res) => {
+// PATCH /api/doctors/:id (PROTECTED)
+app.patch('/api/doctors/:id', authenticateAdmin, async (req, res) => {
   try {
     const updates = req.body;
     
@@ -1033,8 +1111,8 @@ app.patch('/api/doctors/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/doctors/:id
-app.delete('/api/doctors/:id', async (req, res) => {
+// DELETE /api/doctors/:id (PROTECTED)
+app.delete('/api/doctors/:id', authenticateAdmin, async (req, res) => {
   try {
     const doctor = await Doctor.findOneAndDelete({ id: req.params.id });
     if (!doctor) {
