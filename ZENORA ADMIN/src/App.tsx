@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
-console.log("CACHE BUSTER 1");
+import React, { useState, useEffect, useRef, useMemo, useCallback, startTransition } from 'react';
 import { format, startOfWeek, endOfWeek, isToday, parse, startOfMonth, endOfMonth, isSameMonth, isSameDay, addDays, subMonths, addMonths } from 'date-fns';
 import customLogo from './assets/favicon.svg';
 import { Analytics } from "@vercel/analytics/react";
@@ -226,6 +225,7 @@ const MedicalAppointmentSystem = () => {
   // Empty array as initial state. The useEffect below will fetch ALL appointments from Vercel backend!
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
@@ -286,6 +286,13 @@ const MedicalAppointmentSystem = () => {
       Notification.requestPermission();
     }
   }, []);
+
+  // Debounce search query — 300ms delay so filtering doesn't fire on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearchQuery(searchQuery), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const notificationCount = notifications.filter(n => n.unread).length;
   const [showNotifications, setShowNotifications] = useState(false);
   const previousAppointmentsRef = useRef<Set<string>>(new Set());
@@ -439,7 +446,10 @@ const MedicalAppointmentSystem = () => {
             return new Date(b.appointmentDate + ' ' + (b.appointmentTime || '')).getTime() - 
                    new Date(a.appointmentDate + ' ' + (a.appointmentTime || '')).getTime();
           });
-          setAppointments(merged);
+          // Use startTransition so poll-driven updates don't block user interactions
+          startTransition(() => {
+            setAppointments(merged);
+          });
         }
       } catch (err) {
         console.error('Failed to fetch appointments:', err);
@@ -447,7 +457,7 @@ const MedicalAppointmentSystem = () => {
     };
     
     fetchAppointments();
-    const fetchInterval = setInterval(fetchAppointments, 1000);
+    const fetchInterval = setInterval(fetchAppointments, 10000);
     return () => clearInterval(fetchInterval);
   }, []);
 
@@ -476,7 +486,7 @@ const MedicalAppointmentSystem = () => {
 
     if (isLoggedIn) {
       fetchSettingsAndDoctors();
-      const settingsInterval = setInterval(fetchSettingsAndDoctors, 3000);
+      const settingsInterval = setInterval(fetchSettingsAndDoctors, 30000);
       return () => clearInterval(settingsInterval);
     }
   }, [isLoggedIn]);
@@ -554,70 +564,82 @@ const MedicalAppointmentSystem = () => {
 
 
 
-  const filteredAppointments = appointments
-    .filter(apt => {
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = searchLower === '' || 
-        (apt.patientName?.toLowerCase() || '').includes(searchLower) ||
-        (apt.email?.toLowerCase() || '').includes(searchLower) ||
-        (apt.doctor?.toLowerCase() || '').includes(searchLower);
-      
-      const matchesStatus = statusFilter === 'all' ? true : statusFilter === 'priority' ? Boolean(apt.service && apt.service.includes('Priority')) : apt.status === statusFilter;
-      
-      let matchesDate = true;
-      const today = new Date();
-      // Adjust timezone to get correct local date string
-      const localTodayStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-      
-      if (dateFilter === 'today') {
-        matchesDate = apt.appointmentDate === localTodayStr;
-      } else if (dateFilter === 'week') {
-        const currentDay = today.getDay();
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - currentDay);
-        const startStr = new Date(startOfWeek.getTime() - startOfWeek.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  const filteredAppointments = useMemo(() => {
+    const searchLower = debouncedSearchQuery.toLowerCase();
+    const today = new Date();
+    const localTodayStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
+    return appointments
+      .filter(apt => {
+        const matchesSearch = searchLower === '' || 
+          (apt.patientName?.toLowerCase() || '').includes(searchLower) ||
+          (apt.email?.toLowerCase() || '').includes(searchLower) ||
+          (apt.doctor?.toLowerCase() || '').includes(searchLower);
         
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        const endStr = new Date(endOfWeek.getTime() - endOfWeek.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        const matchesStatus = statusFilter === 'all' ? true : statusFilter === 'priority' ? Boolean(apt.service && apt.service.includes('Priority')) : apt.status === statusFilter;
         
-        matchesDate = apt.appointmentDate >= startStr && apt.appointmentDate <= endStr;
-      } else if (dateFilter === 'month') {
-        const currentMonthStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 7); // YYYY-MM
-        matchesDate = apt.appointmentDate.startsWith(currentMonthStr);
-      }
-      
-      return matchesSearch && matchesStatus && matchesDate;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'newest') {
-        const timeA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
-        const timeB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
-        if (timeA !== timeB && timeA > 0 && timeB > 0) return timeB - timeA;
-        const idA = parseInt(String(a.appointmentId).replace(/\D/g, ''), 10) || 0;
-        const idB = parseInt(String(b.appointmentId).replace(/\D/g, ''), 10) || 0;
-        if (idA !== idB) return idB - idA;
-        return new Date(b.appointmentDate + ' ' + (b.appointmentTime || '')).getTime() - 
-               new Date(a.appointmentDate + ' ' + (a.appointmentTime || '')).getTime();
-      } else if (sortBy === 'oldest') {
-        const timeA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
-        const timeB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
-        if (timeA !== timeB && timeA > 0 && timeB > 0) return timeA - timeB;
-        const idA = parseInt(String(a.appointmentId).replace(/\D/g, ''), 10) || 0;
-        const idB = parseInt(String(b.appointmentId).replace(/\D/g, ''), 10) || 0;
-        if (idA !== idB) return idA - idB;
-        return new Date(a.appointmentDate + ' ' + (a.appointmentTime || '')).getTime() - 
-               new Date(b.appointmentDate + ' ' + (b.appointmentTime || '')).getTime();
-      } else if (sortBy === 'name') {
-        return (a.patientName || '').localeCompare(b.patientName || '');
-      }
-      return 0;
-    });
+        let matchesDate = true;
+        
+        if (dateFilter === 'today') {
+          matchesDate = apt.appointmentDate === localTodayStr;
+        } else if (dateFilter === 'week') {
+          const currentDay = today.getDay();
+          const startOfWeek = new Date(today);
+          startOfWeek.setDate(today.getDate() - currentDay);
+          const startStr = new Date(startOfWeek.getTime() - startOfWeek.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+          
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          const endStr = new Date(endOfWeek.getTime() - endOfWeek.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+          
+          matchesDate = apt.appointmentDate >= startStr && apt.appointmentDate <= endStr;
+        } else if (dateFilter === 'month') {
+          const currentMonthStr = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString().slice(0, 7); // YYYY-MM
+          matchesDate = apt.appointmentDate.startsWith(currentMonthStr);
+        }
+        
+        return matchesSearch && matchesStatus && matchesDate;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'newest') {
+          const timeA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
+          const timeB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
+          if (timeA !== timeB && timeA > 0 && timeB > 0) return timeB - timeA;
+          const idA = parseInt(String(a.appointmentId).replace(/\D/g, ''), 10) || 0;
+          const idB = parseInt(String(b.appointmentId).replace(/\D/g, ''), 10) || 0;
+          if (idA !== idB) return idB - idA;
+          return new Date(b.appointmentDate + ' ' + (b.appointmentTime || '')).getTime() - 
+                 new Date(a.appointmentDate + ' ' + (a.appointmentTime || '')).getTime();
+        } else if (sortBy === 'oldest') {
+          const timeA = (a as any).createdAt ? new Date((a as any).createdAt).getTime() : 0;
+          const timeB = (b as any).createdAt ? new Date((b as any).createdAt).getTime() : 0;
+          if (timeA !== timeB && timeA > 0 && timeB > 0) return timeA - timeB;
+          const idA = parseInt(String(a.appointmentId).replace(/\D/g, ''), 10) || 0;
+          const idB = parseInt(String(b.appointmentId).replace(/\D/g, ''), 10) || 0;
+          if (idA !== idB) return idA - idB;
+          return new Date(a.appointmentDate + ' ' + (a.appointmentTime || '')).getTime() - 
+                 new Date(b.appointmentDate + ' ' + (b.appointmentTime || '')).getTime();
+        } else if (sortBy === 'name') {
+          return (a.patientName || '').localeCompare(b.patientName || '');
+        }
+        return 0;
+      });
+  }, [appointments, debouncedSearchQuery, statusFilter, dateFilter, sortBy]);
 
   const today = new Date();
   const localToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  const todayAppointments = appointments.filter(apt => apt.appointmentDate === localToday);
-  const pendingAppointments = appointments.filter(apt => (apt.stage || 'Pending') === 'Pending');
+  const todayAppointments = useMemo(() => appointments.filter(apt => apt.appointmentDate === localToday), [appointments, localToday]);
+  const pendingAppointments = useMemo(() => appointments.filter(apt => (apt.stage || 'Pending') === 'Pending'), [appointments]);
+
+  // Memoize status counts so tab badges don't trigger 6× .filter() on every render
+  const statusCounts = useMemo(() => ({
+    all: appointments.length,
+    priority: appointments.filter(a => Boolean(a.service && a.service.includes('Priority'))).length,
+    Pending: appointments.filter(a => a.status === 'Pending').length,
+    Confirmed: appointments.filter(a => a.status === 'Confirmed').length,
+    Completed: appointments.filter(a => a.status === 'Completed').length,
+    Cancelled: appointments.filter(a => a.status === 'Cancelled').length,
+  }), [appointments]);
 
   const handleStatusChange = async (appointmentId: string, newStatus: Appointment['status']) => {
     isUpdatingRef.current = true;
@@ -950,12 +972,12 @@ const MedicalAppointmentSystem = () => {
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2 pb-2 border-b border-zinc-100">
               {[
-                { id: 'all', label: 'All Appointments', count: appointments.length },
-                { id: 'priority', label: '⚡ Priority Leads', count: appointments.filter(a => Boolean(a.service && a.service.includes('Priority'))).length },
-                { id: 'Pending', label: '🟡 Pending', count: appointments.filter(a => a.status === 'Pending').length },
-                { id: 'Confirmed', label: '🔵 Confirmed', count: appointments.filter(a => a.status === 'Confirmed').length },
-                { id: 'Completed', label: '🟢 Completed', count: appointments.filter(a => a.status === 'Completed').length },
-                { id: 'Cancelled', label: '🔴 Cancelled', count: appointments.filter(a => a.status === 'Cancelled').length },
+                { id: 'all', label: 'All Appointments', count: statusCounts.all },
+                { id: 'priority', label: '⚡ Priority Leads', count: statusCounts.priority },
+                { id: 'Pending', label: '🟡 Pending', count: statusCounts.Pending },
+                { id: 'Confirmed', label: '🔵 Confirmed', count: statusCounts.Confirmed },
+                { id: 'Completed', label: '🟢 Completed', count: statusCounts.Completed },
+                { id: 'Cancelled', label: '🔴 Cancelled', count: statusCounts.Cancelled },
               ].map((tab) => (
                 <button
                   key={tab.id}
