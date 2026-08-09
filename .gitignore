@@ -13,3 +13,6 @@ dist/
 
 # Personal Claude Code settings — machine-specific, not for the repo.
 .claude/settings.local.json
+
+# Microsoft Office temp lock files
+~$*
