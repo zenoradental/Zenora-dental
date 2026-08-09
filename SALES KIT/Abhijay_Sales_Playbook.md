@@ -206,7 +206,7 @@ Highest-trust path. One warm intro from a dentist who likes you = 10 cold emails
 >
 > Worth a 15-minute call this week?
 >
-> Abhijay Karnam · WhiteFox AI · [your phone]
+> Abhijay Karnam · WhiteFox AI · +91 87624 07565
 
 ### 7.2 Cold email — the "missed calls" open
 
@@ -223,7 +223,7 @@ Highest-trust path. One warm intro from a dentist who likes you = 10 cold emails
 > Live demo: [DEMO URL]
 >
 > Would 15 minutes this week be useful?
-> Abhijay Karnam · WhiteFox AI · [your phone]
+> Abhijay Karnam · WhiteFox AI · +91 87624 07565
 
 ### 7.3 Follow-up sequence
 
